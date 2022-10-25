@@ -11,4 +11,4 @@ add_subdirectory(matrices)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} INTERFACE ${MatricesLib_LIB})
-target_include_directories(${PROJECT_NAME} PUBLIC ${MatricesLib_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/matrices/include)

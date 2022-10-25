@@ -33,7 +33,7 @@ class Matrix {
 
   // Конструктор копирования
   Matrix(Matrix const&);
-  Matrix& operator=(Matrix const& ref);
+  Matrix& operator=(Matrix const& other);
   ~Matrix() { delete[] a_; }
 
   std::size_t rows() const { return rows_; }
@@ -46,6 +46,8 @@ class Matrix {
   Vector<T, Rows> GetCol(std::size_t col) const;
   Vector<T, Rows> GetDiag() const;
   T Get(std::size_t row, std::size_t col) const;
+  T operator()(std::size_t row, std::size_t col) const { return Get(row, col); }
+  T& operator()(std::size_t row, std::size_t col);
   void Set(std::size_t row, std::size_t col, T value);
 
   template<std::size_t Cols2>
@@ -169,6 +171,12 @@ Vector<T, Rows> Matrix<T, Rows, Cols>::GetDiag() const {
 
 template <typename T, std::size_t Rows, std::size_t Cols>
 T Matrix<T, Rows, Cols>::Get(std::size_t row, std::size_t col) const {
+  assert(row < rows_ and col < cols_);
+  return a_[row * rows_ + col];
+}
+
+template <typename T, std::size_t Rows, std::size_t Cols>
+T& Matrix<T, Rows, Cols>::operator()(std::size_t row, std::size_t col) {
   assert(row < rows_ and col < cols_);
   return a_[row * rows_ + col];
 }
