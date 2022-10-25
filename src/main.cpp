@@ -12,7 +12,5 @@ int main() {
   }
   Vector<double, 3> v;
   std::cout << m.Det();
-  //auto inverse = m.Inverse();
-  //auto ident = m.MatrixProduct(inverse);
 
 }

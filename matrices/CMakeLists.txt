@@ -10,8 +10,10 @@ message("HEADERS = ${HEADERS}")
 set(LIB_NAME matrices)
 
 # Collects the names of all the source files in the specified directory
-add_library(MatricesLib_LIB INTERFACE ${HEADERS})
-target_include_directories(MatricesLib_LIB INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include>
+add_library(${LIB_NAME} INTERFACE)
+target_sources(${LIB_NAME} INTERFACE ${HEADERS})
+
+target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
 
 set(MatricesLib_LIB ${LIB_NAME})

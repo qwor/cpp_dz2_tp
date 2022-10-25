@@ -190,9 +190,9 @@ void Matrix<T, Rows, Cols>::Set(std::size_t row, std::size_t col, T value) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Cols, Rows> Matrix<T, Rows, Cols>::Transpose() const{
   Matrix<T, Cols, Rows> t(cols_, rows_);
-  for (std::size_t i = 0; i < rows_; i++) {
-    for (std::size_t j = 0; j < cols_; j++) {
-      t.Set(j, i, Get(i, j));
+  for (std::size_t row = 0; row < rows_; row++) {
+    for (std::size_t col = 0; col < cols_; col++) {
+      t(col, row) = Get(row, col);
     }
   }
   return t;

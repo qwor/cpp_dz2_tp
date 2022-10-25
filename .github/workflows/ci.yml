@@ -3,8 +3,6 @@ name: CMake
 on:
   push:
     branches: [ "main", "dz2" ]
-  pull_request:
-    branches: [ "main", "dz2" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -13,7 +11,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: leshiy1295/gcc_linters_valgrind_cmake_gtest
     steps:
       - uses: actions/checkout@v3
 

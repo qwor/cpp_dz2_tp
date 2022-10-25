@@ -128,11 +128,13 @@ TEST(MatrixTest, Transpose) {
   int k = 0;
   for (std::size_t i = 0; i < 2; i++) {
     for (std::size_t j = 0; j < 4; j++) {
-      m.Set(i, j, k++);
+      m(i, j) = k++;
     }
   }
   auto m2 = m.Transpose();
-  EXPECT_EQ(m2[3][1], m[1][3]);
+  EXPECT_EQ(m2.rows(), 4);
+  EXPECT_EQ(m2.cols(), 2);
+  EXPECT_EQ(m2(3, 1), m(1, 3));
 }
 
 TEST(MatrixTest, Inverse) {
