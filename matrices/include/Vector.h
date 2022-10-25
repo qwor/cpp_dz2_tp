@@ -16,11 +16,14 @@ class Matrix;
 template <typename T, std::size_t N = 0>
 class Vector {
  public:
-  Vector();
-  Vector(Vector const&);
-  explicit Vector(T* a) : a_(a), size_(N) {}
-  explicit Vector(std::size_t size);
+  Vector(T value, std::size_t size);
+  explicit Vector(std::size_t size) : Vector(T(), size) {}
+  Vector() : Vector(N) {}
   Vector(T* a, std::size_t size) : a_(a), size_(size) {}
+
+  Vector(Vector const& other);
+  Vector& operator=(Vector const& other);
+  ~Vector() { delete[] a_; }
 
   std::size_t size() const { return size_; }
 
@@ -62,10 +65,11 @@ class Vector {
 };
 
 template<typename T, std::size_t N>
-Vector<T, N>::Vector() : size_(N) {
-  a_ = new T[size_];
-  for (std::size_t i = 0; i < size_; i++)
-    a_[i] = T();
+Vector<T, N>::Vector(T value, std::size_t size) : size_(size) {
+  a_ = new T[size];
+  for (std::size_t i = 0; i < size; i++) {
+    a_[i] = value;
+  }
 }
 
 template<typename T, std::size_t N>
@@ -76,11 +80,12 @@ Vector<T, N>::Vector(Vector<T, N> const& other) : size_(other.size_) {
 }
 
 template<typename T, std::size_t N>
-Vector<T, N>::Vector(std::size_t size) : size_(size) {
-  a_ = new T[size];
-  for (std::size_t i = 0; i < size; i++) {
-    a_[i] = T();
-  }
+Vector<T, N>& Vector<T, N>::operator=(Vector<T, N> const& other) {
+  size_ = other.size_;
+  a_ = new T[size_];
+  for (std::size_t i = 0; i < size_; i++)
+    a_[i] = other.a_[i];
+  return *this;
 }
 
 template <typename T, std::size_t N>

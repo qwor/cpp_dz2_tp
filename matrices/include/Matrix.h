@@ -21,20 +21,24 @@ class Matrix {
     kRow
   };
 
-  Matrix();
-  Matrix(std::size_t rows, std::size_t cols);
-  // конструктор создания матрицы из массива чисел
-  explicit Matrix(T* a) : a_(a), rows_(Rows), cols_(Cols) {}
-  Matrix(T* a, std::size_t rows, std::size_t cols) : a_(a), rows_(rows), cols_(cols) {}
-  // конструктор создания матрицы из массива векторов-столбцов
-  explicit Matrix(Vector<T>* vecs);
-  Matrix(Vector<T>* vecs, std::size_t rows, std::size_t cols);
+  // конструктор создания матрицы из чисел
+  Matrix(T value, std::size_t rows, std::size_t cols);
+  explicit Matrix(T value) : Matrix(value, Rows, Cols) {}
+  Matrix(std::size_t rows, std::size_t cols) : Matrix(0, rows, cols) {}
+  Matrix() : Matrix(Rows, Cols) {}
 
+  // конструктор создания матрицы из векторов-столбцов
+  Matrix(const Vector<T>& value, std::size_t rows, std::size_t cols);
+  explicit Matrix(const Vector<T>& value) : Matrix(value, rows, cols) {}
+
+  // Конструктор копирования
   Matrix(Matrix const&);
-  Matrix& operator=(Matrix const& ref) {*this = Matrix(ref); return *this; }
+  Matrix& operator=(Matrix const& ref);
+  ~Matrix() { delete[] a_; }
 
   std::size_t rows() const { return rows_; }
   std::size_t cols() const { return cols_; }
+  std::size_t size() const { return rows_ * cols_; }
   auto& UnderLyingArray() { return a_; }
 
   Vector<T, Cols> GetRow(std::size_t row) const;
@@ -49,8 +53,8 @@ class Matrix {
   Matrix<T, Cols, Rows> Transpose() const;
   // Только для квадратных матриц
   T Trace() { return GetDiag().Sum(); }
-  Matrix<T, Rows, Cols> Cofactor(std::size_t p, std::size_t q) const;
-  static T Det(Matrix<T, Rows, Cols> mat, std::size_t n);
+  Matrix<T, Rows, Cols> Minor(std::size_t p, std::size_t q) const;
+  T Det(std::size_t n) const;
   T Det() const;
   Matrix<T, Rows, Cols> Adjugate() const;
   Matrix<double, Rows, Cols> Inverse() const;
@@ -99,47 +103,41 @@ class Matrix {
   std::size_t cols_;
 };
 
-
 template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix() : rows_(Rows), cols_(Cols) {
-  a_ = new T[rows_ * cols_];
-  for (std::size_t i = 0; i < rows_ * cols_; i++) {
-    a_[i] = 0;
+Matrix<T, Rows, Cols>::Matrix(T value, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
+  a_ = new T[size()];
+  for (std::size_t i = 0; i < size(); i++) {
+    a_[i] = value;
   }
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
-  a_ = new T[rows_ * cols_];
-  for (std::size_t i = 0; i < rows_ * cols_; i++) {
-    a_[i] = 0;
+Matrix<T, Rows, Cols>::Matrix(const Vector<T>& vec, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
+  a_ = new T[size()];
+  for (std::size_t col = 0; col < cols_; col++) {
+    for (std::size_t row = 0; row < rows_; row++) {
+      a_[row * Rows + col] = vec[col][row];
+    }
   }
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols>::Matrix(Matrix<T, Rows, Cols> const& other) : rows_(other.rows_), cols_(other.cols_) {
-  a_ = new T[rows_ * cols_];
+  a_ = new T[size()];
   for (std::size_t i = 0; i < rows_ * cols_; i++) {
     a_[i] = other.a_[i];
   }
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(Vector<T>* vecs, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
-  for (std::size_t col = 0; col < cols_; col++) {
-    for (std::size_t row = 0; row < rows_; row++) {
-      a_[row * Rows + col] = vecs[col][row];
-    }
+Matrix<T, Rows, Cols>& Matrix<T, Rows, Cols>::operator=(Matrix const& other) {
+  rows_ = other.rows_;
+  cols_ = other.cols_;
+  a_ = new T[size()];
+  for (std::size_t i = 0; i < rows_ * cols_; i++) {
+    a_[i] = other.a_[i];
   }
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(Vector<T>* vecs) : rows_(Rows), cols_(Cols) {
-  for (std::size_t col = 0; col < cols_; col++) {
-    for (std::size_t row = 0; row < rows_; row++) {
-      a_[row * Rows + col] = vecs[col][row];
-    }
-  }
+  return *this;
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
@@ -193,10 +191,11 @@ Matrix<T, Cols, Rows> Matrix<T, Rows, Cols>::Transpose() const{
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Cofactor(std::size_t p, std::size_t q) const{
-  assert(cols_ == rows_);
+Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Minor(std::size_t p, std::size_t q) const{
+  assert(cols_ == rows_ && cols_ > 0);
   std::size_t n = cols_;
-  Matrix<T, Rows, Cols> res(cols_, cols_);
+
+  Matrix<T, Rows, Cols> res(n-1, n-1);
   std::size_t i = 0, j = 0;
 
   // Цикл проходит по всем элементам в матрице
@@ -221,29 +220,29 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Cofactor(std::size_t p, std::size_t
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
-T Matrix<T, Rows, Cols>::Det(Matrix<T, Rows, Cols> mat, std::size_t n) {
+T Matrix<T, Rows, Cols>::Det(std::size_t n) const {
+  if (n == 0)
+    return T();
+  if (n == 1)
+    return a_[0];
+  //if (n == 2)
+    //return (Get(0, 0) * Get(1, 1)) - (Get(0, 1) * Get(1, 0));
+
   int sign = 1;
   T det = 0;  // Результат
-
-  //  Если в матрице один элемент
-  if (n == 1)
-    return mat.a_[0];
-
-
-  for (std::size_t f = 0; f < n; f++) {
-    // Вычисляем матрицу дополнений для a_[0][f]
-    Matrix<T, Rows, Cols> temp = mat.Cofactor(0, f);
-    det += sign * mat.a_[f] * Det(temp, n - 1);
+  for (std::size_t i = 0; i < n; i++) {
+    // Вычисляем матрицу дополнений для a_[0][i]
+    auto minor = Minor(0, i);
+    det += sign * Get(0, i) * minor.Det(n-1);
     sign = -sign;
   }
-
   return det;
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 T Matrix<T, Rows, Cols>::Det() const {
   assert(cols_ == rows_);
-  return Det(*this, cols_);
+  return Det(cols_);
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
@@ -261,13 +260,13 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Adjugate() const {
   for (std::size_t i = 0; i < n; i++) {
     for (std::size_t j = 0; j < n; j++) {
        // temp нужен для хранянения матрицы дополнений
-      Matrix<T, Rows, Cols> temp = Cofactor(i, j);
+      auto temp = Minor(i, j);
 
       // Знак положительный если сумма ряда и столбца чётна
       sign = ((i + j) % 2 == 0) ? 1 : -1;
 
       //  Меняем ряды и столбцы, чтобы получить транспонированную матрицу дополнений
-      T value = (sign) * Det(temp, n - 1);
+      T value = (sign) * temp.Det(n - 1);
       res.Set(j, i, value);
     }
   }

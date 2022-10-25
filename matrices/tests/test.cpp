@@ -136,14 +136,12 @@ TEST(MatrixTest, Transpose) {
 }
 
 TEST(MatrixTest, Inverse) {
-  constexpr int n = 4;
+  constexpr int n = 2;
   Matrix<double, n, n> m;
-  int k = 0;
-  for (std::size_t i = 0; i < 4; i++) {
-    for (std::size_t j = 0; j < 4; j++) {
-      m.Set(i, j, k++);
-    }
-  }
+  m.Set(0, 0, 5);
+  m.Set(0, 1, 6);
+  m.Set(1, 0, 4);
+  m.Set(1, 1, 5);
   auto inverse = m.Inverse();
   auto ident = m.MatrixProduct(inverse);
 
@@ -155,11 +153,9 @@ TEST(MatrixTest, Inverse) {
 TEST(MatrixTest, Det) {
   constexpr int n = 2;
   Matrix<double, n, n> m;
-  int k = 1;
-  for (std::size_t i = 0; i < n; i++) {
-    for (std::size_t j = 0; j < n; j++) {
-      m.Set(i, j, k++);
-    }
-  }
-  EXPECT_EQ(m.Det(), -2);
+  m.Set(0, 0, 5);
+  m.Set(0, 1, 6);
+  m.Set(1, 0, 4);
+  m.Set(1, 1, 5);
+  EXPECT_EQ(m.Det(), 1);
 }
