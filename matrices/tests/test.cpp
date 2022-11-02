@@ -22,7 +22,7 @@ TEST(VectorTest, CrossDotProducts) {
     vec_b[i] = i + 1;
   }
   auto m = vec_a.CrossProduct(vec_b);
-  EXPECT_EQ(m[3][3], 12);
+  EXPECT_EQ(m(3, 3), 12);
   int dot = vec_a.DotProduct(vec_b);
   EXPECT_EQ(dot, 20);
 }
@@ -113,12 +113,12 @@ TEST(MatrixTest, Arithmetic) {
   mat_a /= mat_b;
   EXPECT_EQ(mat_a.Sum(), 9);
 
-  Vector<int> vec(3);
+  Vector<int, 3ULL> vec(3);
   vec += 2;
-  mat_a = mat_a.AddVector(vec);
-  mat_a = mat_a.SubVector(vec);
-  mat_a = mat_a.MulVector(vec, mat_a.kRow);
-  mat_a = mat_a.DivVector(vec, mat_a.kRow);
+  mat_a = mat_a.AddVectorVert(vec);
+  mat_a = mat_a.SubVectorVert(vec);
+  mat_a = mat_a.MulVectorHor(vec);
+  mat_a = mat_a.DivVectorHor(vec);
 
   EXPECT_EQ(mat_a.Sum(), 9);
 }

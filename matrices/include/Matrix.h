@@ -1,5 +1,5 @@
 //
-// Created by Mipku on 20.10.2022.
+// Created by Ripku on 20.10.2022.
 //
 
 #pragma once
@@ -7,27 +7,22 @@
 #include <utility>
 #include <iostream>
 #include <array>
-#include <cassert>
+#include <stdexcept>
 
 #include "Vector.h"
 
-template <typename T, std::size_t Rows = 0, std::size_t Cols = Rows>
+template <typename T, std::size_t N = 0, std::size_t M = N>
 class Matrix {
  public:
-  enum VectorType {
-    kCol,
-    kRow
-  };
-
   // конструктор создания матрицы из чисел
   Matrix(T value, std::size_t rows, std::size_t cols);
-  explicit Matrix(T value) : Matrix(value, Rows, Cols) {}
+  explicit Matrix(T value) : Matrix(value, N, M) {}
   Matrix(std::size_t rows, std::size_t cols) : Matrix(0, rows, cols) {}
-  Matrix() : Matrix(Rows, Cols) {}
+  Matrix() : Matrix(N, M) {}
 
   // конструктор создания матрицы из векторов-столбцов
-  Matrix(const Vector<T>& value, std::size_t rows, std::size_t cols);
-  explicit Matrix(const Vector<T>& value) : Matrix(value, rows, cols) {}
+  Matrix(const Vector<T, N>& value, std::size_t rows, std::size_t cols);
+  explicit Matrix(const Vector<T, N>& value) : Matrix(value, rows, cols) {}
 
   // Конструктор копирования
   Matrix(Matrix const&);
@@ -39,98 +34,120 @@ class Matrix {
   std::size_t size() const { return rows_ * cols_; }
   auto& UnderLyingArray() { return a_; }
 
-  Vector<T, Cols> GetRow(std::size_t row) const;
-  Vector<T, Cols> operator[](std::size_t row) const { return GetRow(row); }
-  Vector<T, Rows> GetCol(std::size_t col) const;
-  Vector<T, Rows> GetDiag() const;
+  Vector<T, M> GetRow(std::size_t row) const;
+  Vector<T, M> operator[](std::size_t row) const { return GetRow(row); }
+  Vector<T, N> GetCol(std::size_t col) const;
+  Vector<T, N> GetDiag() const;
   T Get(std::size_t row, std::size_t col) const;
   T operator()(std::size_t row, std::size_t col) const { return Get(row, col); }
   T& operator()(std::size_t row, std::size_t col);
   void Set(std::size_t row, std::size_t col, T value);
 
-  template<std::size_t Cols2>
-  Matrix<T, Rows, Cols2> MatrixProduct(const Matrix<T, Cols, Cols2>& other);
-  Matrix<T, Cols, Rows> Transpose() const;
+  template<std::size_t M2>
+  Matrix<T, N, M2> MatrixProduct(const Matrix<T, M, M2>& other);
+  Matrix<T, M, N> Transpose() const;
   // Только для квадратных матриц
   T Trace() { return GetDiag().Sum(); }
-  Matrix<T, Rows, Cols> Minor(std::size_t p, std::size_t q) const;
+  Matrix<T, N, M> Rinor(std::size_t p, std::size_t q) const;
   T Det(std::size_t n) const;
   T Det() const;
-  Matrix<T, Rows, Cols> Adjugate() const;
-  Matrix<double, Rows, Cols> Inverse() const;
+  Matrix<T, N, M> Adjugate() const;
+  Matrix<double, N, M> Inverse() const;
 
   T Sum() const;
   void Print() const;
 
   // Каждый ряд (или столбец) матрицы и вектор
-  Matrix<T, Rows, Cols> AddVector(const Vector<T>& v, VectorType type = VectorType::kCol);
-  Matrix<T, Rows, Cols> SubVector(const Vector<T>& v, VectorType type = VectorType::kCol);
-  Matrix<T, Rows, Cols> MulVector(const Vector<T>& v, VectorType type = VectorType::kCol);
-  Matrix<T, Rows, Cols> DivVector(const Vector<T>& v, VectorType type = VectorType::kCol);
+  Matrix<T, N, M> AddVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kAdd, v, true); }
+  Matrix<T, N, M> AddVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kAdd, v); }
+  Matrix<T, N, M> SubVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kSub, v, true); }
+  Matrix<T, N, M> SubVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kSub, v); }
+  Matrix<T, N, M> MulVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kMul, v, true); }
+  Matrix<T, N, M> MulVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kMul, v); }
+  Matrix<T, N, M> DivVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v, true); }
+  Matrix<T, N, M> DivVectorVert(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v, true); }
 
-  Matrix<T, Rows, Cols> operator+(T value);
-  Matrix<T, Rows, Cols> operator-(T value);
-  Matrix<T, Rows, Cols> operator*(T value);
-  Matrix<T, Rows, Cols> operator/(T value);
-  Matrix<T, Rows, Cols> operator+(const Vector<T>& v) { return AddVector(v); }
-  Matrix<T, Rows, Cols> operator-(const Vector<T>& v) { return SubVector(v); }
-  Matrix<T, Rows, Cols> operator*(const Vector<T>& v) { return MulVector(v); }
-  Matrix<T, Rows, Cols> operator/(const Vector<T>& v) { return DivVector(v); }
-  Matrix<T, Rows, Cols> operator+(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator-(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator*(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator/(const Matrix<T, Rows, Cols>& other);
+  Matrix<T, N, M> operator+(T value) { return OperateValue(Op::kAdd, value); }
+  Matrix<T, N, M> operator-(T value) { return OperateValue(Op::kSub, value); }
+  Matrix<T, N, M> operator*(T value) { return OperateValue(Op::kMul, value); }
+  Matrix<T, N, M> operator/(T value) { return OperateValue(Op::kDiv, value); }
+  Matrix<T, N, M> operator+(const Vector<T, N>& v) { return AddVectorVert(v); }
+  Matrix<T, N, M> operator-(const Vector<T, N>& v) { return SubVectorVert(v); }
+  Matrix<T, N, M> operator*(const Vector<T, N>& v) { return MulVectorVert(v); }
+  Matrix<T, N, M> operator/(const Vector<T, N>& v) { return DivVectorVert(v); }
+  Matrix<T, N, M> operator+(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kAdd, other); }
+  Matrix<T, N, M> operator-(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kSub, other); }
+  Matrix<T, N, M> operator*(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kMul, other); }
+  Matrix<T, N, M> operator/(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kDiv, other); }
 
-  Matrix<T, Rows, Cols> operator+=(T value);
-  Matrix<T, Rows, Cols> operator-=(T value);
-  Matrix<T, Rows, Cols> operator*=(T value);
-  Matrix<T, Rows, Cols> operator/=(T value);
-  Matrix<T, Rows, Cols> operator+=(const Vector<T>& v) { *this = AddVector(v); return *this; }
-  Matrix<T, Rows, Cols> operator-=(const Vector<T>& v) { *this = SubVector(v); return *this; }
-  Matrix<T, Rows, Cols> operator*=(const Vector<T>& v) { *this = MulVector(v); return *this; }
-  Matrix<T, Rows, Cols> operator/=(const Vector<T>& v) { *this = DivVector(v); return *this; }
-  Matrix<T, Rows, Cols> operator+=(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator-=(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator*=(const Matrix<T, Rows, Cols>& other);
-  Matrix<T, Rows, Cols> operator/=(const Matrix<T, Rows, Cols>& other);
+  Matrix<T, N, M> operator+=(T value) { *this = OperateValue(Op::kAdd, value); return *this; }
+  Matrix<T, N, M> operator-=(T value) { *this = OperateValue(Op::kSub, value); return *this; }
+  Matrix<T, N, M> operator*=(T value) { *this = OperateValue(Op::kMul, value); return *this; }
+  Matrix<T, N, M> operator/=(T value) { *this = OperateValue(Op::kDiv, value); return *this; }
+  Matrix<T, N, M> operator+=(const Vector<T>& v) { *this = AddVectorVert(v); return *this; }
+  Matrix<T, N, M> operator-=(const Vector<T>& v) { *this = SubVectorVert(v); return *this; }
+  Matrix<T, N, M> operator*=(const Vector<T>& v) { *this = MulVectorVert(v); return *this; }
+  Matrix<T, N, M> operator/=(const Vector<T>& v) { *this = DivVectorVert(v); return *this; }
+  Matrix<T, N, M> operator+=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kAdd, other); return *this; }
+  Matrix<T, N, M> operator-=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kSub, other); return *this; }
+  Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kMul, other); return *this; }
+  Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kDiv, other); return *this; }
 
-  Matrix<T> Slice(std::size_t start_rows, std::size_t end_rows,
-                              std::size_t start_cols, std::size_t end_cols) const;
+  Matrix<T> Slice(std::size_t start_rows, std::size_t end_rows, std::size_t start_cols, std::size_t end_cols) const;
 
  private:
   T* a_;
   std::size_t rows_;
   std::size_t cols_;
+
+  enum Op {
+    kAdd,
+    kSub,
+    kMul,
+    kDiv
+  };
+
+  Matrix<T, N, M> OperateValue(Op op, T value);
+  template<std::size_t R>
+  Matrix<T, N, M> OperateVector(Op op, const Vector<T, R>& v, bool horizontal=false);
+  Matrix<T, N, M> OperateMatrix(Op op, const Matrix<T, N, M>& other);
+
+  void CheckVectorRowSize(const Vector<T, N>& v) const;
+  void CheckVectorColSize(const Vector<T, M>& v) const;
+  void CheckMatrixSize(const Matrix<T, N, M>& other) const;
+  void CheckMatrixSquare() const;
+  void CheckIndex(std::size_t row, std::size_t col) const;
 };
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(T value, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M>::Matrix(T value, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
   a_ = new T[size()];
   for (std::size_t i = 0; i < size(); ++i) {
     a_[i] = value;
   }
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(const Vector<T>& vec, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M>::Matrix(const Vector<T, N>& vec, std::size_t rows, std::size_t cols)
+    : rows_(rows), cols_(cols) {
   a_ = new T[size()];
   for (std::size_t col = 0; col < cols_; ++col) {
     for (std::size_t row = 0; row < rows_; ++row) {
-      a_[row * Rows + col] = vec[col][row];
+      a_[row * rows_ + col] = vec[row];
     }
   }
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>::Matrix(Matrix<T, Rows, Cols> const& other) : rows_(other.rows_), cols_(other.cols_) {
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M>::Matrix(Matrix<T, N, M> const& other) : rows_(other.rows_), cols_(other.cols_) {
   a_ = new T[size()];
   for (std::size_t i = 0; i < rows_ * cols_; ++i) {
     a_[i] = other.a_[i];
   }
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols>& Matrix<T, Rows, Cols>::operator=(Matrix const& other) {
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M>& Matrix<T, N, M>::operator=(Matrix const& other) {
   if (this == &other) {
     return *this;
   }
@@ -144,35 +161,35 @@ Matrix<T, Rows, Cols>& Matrix<T, Rows, Cols>::operator=(Matrix const& other) {
   return *this;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Vector<T, Cols> Matrix<T, Rows, Cols>::GetRow(std::size_t row) const{
-  Vector<T, Cols> res(cols_);
+template<typename T, std::size_t N, std::size_t M>
+Vector<T, M> Matrix<T, N, M>::GetRow(std::size_t row) const{
+  Vector<T, M> res(cols_);
   for (std::size_t i = 0; i < cols_; ++i) {
     res[i] = a_[row * rows_ + i];
   }
   return res;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Vector<T, Rows>  Matrix<T, Rows, Cols>::GetCol(std::size_t col) const {
-  Vector<T, Rows> res(rows_);
+template<typename T, std::size_t N, std::size_t M>
+Vector<T, N>  Matrix<T, N, M>::GetCol(std::size_t col) const {
+  Vector<T, N> res(rows_);
   for (std::size_t i = 0; i < rows_; ++i) {
     res[i] = a_[i * rows_ + col];
   }
   return res;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Vector<T, Rows> Matrix<T, Rows, Cols>::GetDiag() const {
-  Vector<T, Rows> res(rows_);
+template<typename T, std::size_t N, std::size_t M>
+Vector<T, N> Matrix<T, N, M>::GetDiag() const {
+  Vector<T, N> res(rows_);
   for (std::size_t i = 0; i < rows_; ++i) {
     res[i] = a_[i * rows_ + i];
   }
   return res;
 }
 
-template <typename T, std::size_t Rows, std::size_t Cols>
-T Matrix<T, Rows, Cols>::Get(std::size_t row, std::size_t col) const {
+template <typename T, std::size_t N, std::size_t M>
+T Matrix<T, N, M>::Get(std::size_t row, std::size_t col) const {
   if (row >= rows_) {
     throw std::out_of_range("Matrix row index out of range");
   }
@@ -182,8 +199,8 @@ T Matrix<T, Rows, Cols>::Get(std::size_t row, std::size_t col) const {
   return a_[row * rows_ + col];
 }
 
-template <typename T, std::size_t Rows, std::size_t Cols>
-T& Matrix<T, Rows, Cols>::operator()(std::size_t row, std::size_t col) {
+template <typename T, std::size_t N, std::size_t M>
+T& Matrix<T, N, M>::operator()(std::size_t row, std::size_t col) {
   if (row >= rows_) {
     throw std::out_of_range("Matrix row index out of range");
   }
@@ -193,8 +210,8 @@ T& Matrix<T, Rows, Cols>::operator()(std::size_t row, std::size_t col) {
   return a_[row * rows_ + col];
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-void Matrix<T, Rows, Cols>::Set(std::size_t row, std::size_t col, T value) {
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::Set(std::size_t row, std::size_t col, T value) {
   if (row >= rows_) {
     throw std::out_of_range("Matrix row index out of range");
   }
@@ -204,9 +221,9 @@ void Matrix<T, Rows, Cols>::Set(std::size_t row, std::size_t col, T value) {
   a_[row * rows_ + col] = value;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Cols, Rows> Matrix<T, Rows, Cols>::Transpose() const{
-  Matrix<T, Cols, Rows> t(cols_, rows_);
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, M, N> Matrix<T, N, M>::Transpose() const{
+  Matrix<T, M, N> t(cols_, rows_);
   for (std::size_t row = 0; row < rows_; ++row) {
     for (std::size_t col = 0; col < cols_; ++col) {
       t(col, row) = Get(row, col);
@@ -215,12 +232,12 @@ Matrix<T, Cols, Rows> Matrix<T, Rows, Cols>::Transpose() const{
   return t;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Minor(std::size_t p, std::size_t q) const{
-  assert(cols_ == rows_ && cols_ > 0);
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M> Matrix<T, N, M>::Rinor(std::size_t p, std::size_t q) const{
+  CheckMatrixSquare();
   std::size_t n = cols_;
 
-  Matrix<T, Rows, Cols> res(n-1, n-1);
+  Matrix<T, N, M> res(n-1, n-1);
   std::size_t i = 0, j = 0;
 
   // Цикл проходит по всем элементам в матрице
@@ -244,8 +261,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Minor(std::size_t p, std::size_t q)
   return res;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-T Matrix<T, Rows, Cols>::Det(std::size_t n) const {
+template<typename T, std::size_t N, std::size_t M>
+T Matrix<T, N, M>::Det(std::size_t n) const {
   if (n == 0)
     return T();
   if (n == 1)
@@ -255,23 +272,23 @@ T Matrix<T, Rows, Cols>::Det(std::size_t n) const {
   T det = 0;  // Результат
   for (std::size_t i = 0; i < n; ++i) {
     // Вычисляем матрицу дополнений для a_[0][i]
-    auto minor = Minor(0, i);
+    auto minor = Rinor(0, i);
     det += sign * Get(0, i) * minor.Det(n-1);
     sign = -sign;
   }
   return det;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-T Matrix<T, Rows, Cols>::Det() const {
-  assert(cols_ == rows_);
+template<typename T, std::size_t N, std::size_t M>
+T Matrix<T, N, M>::Det() const {
+  CheckMatrixSquare();
   return Det(cols_);
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Adjugate() const {
-  assert(cols_ == rows_);
-  Matrix<T, Rows, Cols> res(cols_, cols_);
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M> Matrix<T, N, M>::Adjugate() const {
+  CheckMatrixSquare();
+  Matrix<T, N, M> res(cols_, cols_);
   std::size_t n = cols_;
   if (n == 1) {
     res.Set(0, 0, 1);
@@ -283,7 +300,7 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Adjugate() const {
   for (std::size_t i = 0; i < n; ++i) {
     for (std::size_t j = 0; j < n; ++j) {
        // temp нужен для хранянения матрицы дополнений
-      auto temp = Minor(i, j);
+      auto temp = Rinor(i, j);
 
       // Знак положительный если сумма ряда и столбца чётна
       sign = ((i + j) % 2 == 0) ? 1 : -1;
@@ -296,8 +313,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Adjugate() const {
   return res;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<double, Rows, Cols> Matrix<T, Rows, Cols>::Inverse() const {
+template<typename T, std::size_t N, std::size_t M>
+Matrix<double, N, M> Matrix<T, N, M>::Inverse() const {
   T det = Det();
   assert(det != 0);
 
@@ -305,7 +322,7 @@ Matrix<double, Rows, Cols> Matrix<T, Rows, Cols>::Inverse() const {
   auto adj = Adjugate();
 
   std::size_t n = cols_;
-  Matrix<double, Cols, Cols> inverse(n, n);
+  Matrix<double, M, M> inverse(n, n);
   for (std::size_t i = 0; i < n; ++i) {
     for (std::size_t j = 0; j < n; ++j) {
       inverse.Set(i, j, adj[i][j] / det);
@@ -315,8 +332,8 @@ Matrix<double, Rows, Cols> Matrix<T, Rows, Cols>::Inverse() const {
   return inverse;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-void Matrix<T, Rows, Cols>::Print() const {
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::Print() const {
   for (std::size_t i = 0; i < rows_; ++i) {
     for (std::size_t j = 0; j < cols_; ++j) {
       std::cout << Get(i, j) << '\t';
@@ -326,252 +343,8 @@ void Matrix<T, Rows, Cols>::Print() const {
   std::cout << std::endl;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::AddVector(const Vector<T>& v, Matrix::VectorType type) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      if (type == VectorType::kCol) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] + v[row]);
-      } else if (type == VectorType::kRow) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] + v[col]);
-      }
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::SubVector(const Vector<T>& v, Matrix::VectorType type) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      if (type == VectorType::kCol) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] - v[row]);
-      } else if (type == VectorType::kRow) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] - v[col]);
-      }
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::MulVector(const Vector<T>& v, Matrix::VectorType type) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      if (type == VectorType::kCol) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] * v[row]);
-      } else if (type == VectorType::kRow) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] * v[col]);
-      }
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::DivVector(const Vector<T>& v, Matrix::VectorType type) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      if (type == VectorType::kCol) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] / v[row]);
-      } else if (type == VectorType::kRow) {
-        assert(rows_ == v.size());
-        res.Set(row, col, a_[row*rows_ + col] / v[col]);
-      }
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+(T value) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] + value);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-(T value) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] - value);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*(T value) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] * value);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/(T value) {
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] / value);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] + other.a_[row*rows_ + col]);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] - other.a_[row*rows_ + col]);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] * other.a_[row*rows_ + col]);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      res.Set(row, col, a_[row*rows_ + col] / other.a_[row*rows_ + col]);
-    }
-  }
-  return res;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(T value) {
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] + value);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(T value) {
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] - value);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(T value) {
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] * value);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(T value) {
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] / value);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] + other.a_[row*rows_ + col]);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] - other.a_[row*rows_ + col]);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] * other.a_[row*rows_ + col]);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(const Matrix<T, Rows, Cols> &other) {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; ++row) {
-    for (std::size_t col = 0; col < cols_; ++col) {
-      Set(row, col, a_[row*rows_ + col] / other.a_[row*rows_ + col]);
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t Rows, std::size_t Cols>
-T Matrix<T, Rows, Cols>::Sum() const {
+template<typename T, std::size_t N, std::size_t M>
+T Matrix<T, N, M>::Sum() const {
   T sum = 0;
   for (std::size_t i = 0; i < rows_*cols_; ++i) {
     sum += a_[i];
@@ -579,8 +352,8 @@ T Matrix<T, Rows, Cols>::Sum() const {
   return sum;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-Matrix<T> Matrix<T, Rows, Cols>::Slice(std::size_t start_rows, std::size_t end_rows,
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T> Matrix<T, N, M>::Slice(std::size_t start_rows, std::size_t end_rows,
                             std::size_t start_cols, std::size_t end_cols) const {
   Matrix<T> res(end_rows - start_rows, end_cols - start_cols);
   for (std::size_t row = 0; row < (end_rows - start_rows); ++row) {
@@ -592,11 +365,13 @@ Matrix<T> Matrix<T, Rows, Cols>::Slice(std::size_t start_rows, std::size_t end_r
   return res;
 }
 
-template<typename T, std::size_t Rows, std::size_t Cols>
-template<std::size_t Cols2>
-Matrix<T, Rows, Cols2> Matrix<T, Rows, Cols>::MatrixProduct(const Matrix<T, Cols, Cols2> &other) {
-  assert(cols_ == other.rows());
-  Matrix<T, Rows, Cols2> res(rows_, other.cols());
+template<typename T, std::size_t N, std::size_t M>
+template<std::size_t M2>
+Matrix<T, N, M2> Matrix<T, N, M>::MatrixProduct(const Matrix<T, M, M2> &other) {
+  if (cols_ != other.rows()) {
+    throw std::invalid_argument("Invalid matrix argument proportions, cannot compute product");
+  }
+  Matrix<T, N, M2> res(rows_, other.cols());
 
   for (std::size_t i = 0; i < rows_; ++i) {
     for (std::size_t j = 0; j < other.cols(); ++j) {
@@ -608,4 +383,122 @@ Matrix<T, Rows, Cols2> Matrix<T, Rows, Cols>::MatrixProduct(const Matrix<T, Cols
     }
   }
   return res;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M> Matrix<T, N, M>::OperateValue(Op op, T value) {
+  Matrix<T, N, M> res(rows_, cols_);
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
+      switch (op) {
+        case Op::kAdd:
+          res(row, col) = a_[row*rows_ + col] + value;
+          break;
+        case Op::kSub:
+          res(row, col) = a_[row*rows_ + col] - value;
+          break;
+        case Op::kMul:
+          res(row, col) = a_[row*rows_ + col] * value;
+          break;
+        case Op::kDiv:
+          res(row, col) = a_[row*rows_ + col] / value;
+          break;
+      }
+    }
+  }
+  return res;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+template<std::size_t R>
+Matrix<T, N, M> Matrix<T, N, M>::OperateVector(Matrix::Op op, const Vector<T, R> &v, bool horizontal) {
+  if (horizontal) {
+    CheckVectorColSize(v);
+  } else {
+    CheckVectorColSize(v);
+  }
+  Matrix<T, N, M> res(rows_, cols_);
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
+      auto value = v[row];
+      if (horizontal) {
+        value = v[col];
+      }
+      switch (op) {
+        case Op::kAdd:
+          res(row, col) = a_[row*rows_ + col] + value;
+          break;
+        case Op::kSub:
+          res(row, col) = a_[row*rows_ + col] - value;
+          break;
+        case Op::kMul:
+          res(row, col) = a_[row*rows_ + col] * value;
+          break;
+        case Op::kDiv:
+          res(row, col) = a_[row*rows_ + col] / value;
+          break;
+      }
+    }
+  }
+  return res;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M> Matrix<T, N, M>::OperateMatrix(Op op, const Matrix<T, N, M>& other) {
+  CheckMatrixSize(other);
+  Matrix<T, N, M> res(rows_, cols_);
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
+      switch (op) {
+        case Op::kAdd:
+          res(row, col) = a_[row * rows_ + col] + other.a_[row * rows_ + col];
+          break;
+        case Op::kSub:
+          res(row, col) = a_[row * rows_ + col] - other.a_[row * rows_ + col];
+          break;
+        case Op::kMul:
+          res(row, col) = a_[row * rows_ + col] * other.a_[row * rows_ + col];
+          break;
+        case Op::kDiv:
+          res(row, col) = a_[row * rows_ + col] / other.a_[row * rows_ + col];
+          break;
+      }
+    }
+  }
+  return res;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::CheckVectorRowSize(const Vector<T, N> &v) const {
+  if (rows_ != v.size()) {
+    throw std::invalid_argument("Vector has wrong size, it is not equal to the number of rows in the matrix");
+  }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::CheckVectorColSize(const Vector<T, M> &v) const {
+  if (cols_ != v.size()) {
+    throw std::invalid_argument("Vector has wrong size, it is not equal to the number of cols in the matrix");
+  }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::CheckMatrixSize(const Matrix<T, N, M> &other) const {
+  if (rows_ != other.rows_ || cols_ != other.cols_) {
+    throw std::invalid_argument("Matrix dimensions must agree");
+  }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::CheckMatrixSquare() const {
+  if (rows_ != cols_ || rows_ == 0) {
+    throw std::logic_error("Matrix must be square to perform this operation");
+  }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+void Matrix<T, N, M>::CheckIndex(std::size_t row, std::size_t col) const {
+  if (!(row < rows_ && col < cols_)) {
+    throw std::out_of_range("Index of the matrix is ot of range");
+  }
 }

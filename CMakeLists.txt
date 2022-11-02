@@ -4,7 +4,7 @@ set(PROJECT_NAME "MatrixSample")
 
 project(${PROJECT_NAME})
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 enable_testing()
 add_subdirectory(matrices)

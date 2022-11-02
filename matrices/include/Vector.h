@@ -50,14 +50,14 @@ class Vector {
   Vector<T, N> operator*(const Vector<T, N>& other) { return OperateVector(Op::kMul, other); }
   Vector<T, N> operator/(const Vector<T, N>& other) { return OperateVector(Op::kDiv, other); }
 
-  Vector<T, N> operator+=(T value) { return OperateAssignValue(Op::kAdd, value); }
-  Vector<T, N> operator-=(T value) { return OperateAssignValue(Op::kSub, value); }
-  Vector<T, N> operator*=(T value) { return OperateAssignValue(Op::kMul, value); }
-  Vector<T, N> operator/=(T value) { return OperateAssignValue(Op::kDiv, value); }
-  Vector<T, N> operator+=(const Vector<T, N>& other) { return OperateAssignVector(Op::kAdd, other); }
-  Vector<T, N> operator-=(const Vector<T, N>& other) { return OperateAssignVector(Op::kSub, other); }
-  Vector<T, N> operator*=(const Vector<T, N>& other) { return OperateAssignVector(Op::kMul, other); }
-  Vector<T, N> operator/=(const Vector<T, N>& other) { return OperateAssignVector(Op::kDiv, other); }
+  Vector<T, N> operator+=(T value) { *this = OperateValue(Op::kAdd, value); return *this; }
+  Vector<T, N> operator-=(T value) { *this = OperateValue(Op::kSub, value); return *this; }
+  Vector<T, N> operator*=(T value) { *this = OperateValue(Op::kMul, value); return *this; }
+  Vector<T, N> operator/=(T value) { *this = OperateValue(Op::kDiv, value); return *this; }
+  Vector<T, N> operator+=(const Vector<T, N>& other) { *this = OperateVector(Op::kAdd, other); return *this; }
+  Vector<T, N> operator-=(const Vector<T, N>& other) { *this = OperateVector(Op::kSub, other); return *this; }
+  Vector<T, N> operator*=(const Vector<T, N>& other) { *this = OperateVector(Op::kMul, other); return *this; }
+  Vector<T, N> operator/=(const Vector<T, N>& other) { *this = OperateVector(Op::kDiv, other); return *this; }
 
  private:
   std::size_t size_;
@@ -72,8 +72,6 @@ class Vector {
 
   Vector<T, N> OperateValue(Op op, T value);
   Vector<T, N> OperateVector(Op op, const Vector<T, N>& other);
-  Vector<T, N> OperateAssignValue(Op op, T value);
-  Vector<T, N> OperateAssignVector(Op op, const Vector<T, N>& other);
 
   void CheckSize(const Vector<T, N>& other) const;
 };
@@ -216,50 +214,6 @@ Vector<T, N> Vector<T, N>::OperateVector(Op op, const Vector<T, N>& other) {
     }
   }
   return res;
-}
-
-
-template<typename T, std::size_t N>
-Vector<T, N> Vector<T, N>::OperateAssignValue(Vector::Op op, T value) {
-  for (std::size_t i = 0; i < size_; ++i) {
-    switch (op) {
-      case Op::kAdd:
-        a_[i] += value;
-        break;
-      case Op::kSub:
-        a_[i] -= value;
-        break;
-      case Op::kMul:
-        a_[i] *= value;
-        break;
-      case Op::kDiv:
-        a_[i] /= value;
-        break;
-    }
-  }
-  return *this;
-}
-
-template<typename T, std::size_t N>
-Vector<T, N> Vector<T, N>::OperateAssignVector(Vector::Op op, const Vector<T, N> &other) {
-  CheckSize(other);
-  for (std::size_t i = 0; i < size_; ++i) {
-    switch (op) {
-      case Op::kAdd:
-        a_[i] += other.a_[i];
-        break;
-      case Op::kSub:
-        a_[i] -= other.a_[i];
-        break;
-      case Op::kMul:
-        a_[i] *= other.a_[i];
-        break;
-      case Op::kDiv:
-        a_[i] /= other.a_[i];
-        break;
-    }
-  }
-  return *this;
 }
 
 template<typename T, std::size_t N>
