@@ -2,9 +2,7 @@
 // Created by Mipku on 20.10.2022.
 //
 
-#ifndef DZ2_MATRIX_H
-#define DZ2_MATRIX_H
-
+#pragma once
 
 #include <utility>
 #include <iostream>
@@ -108,7 +106,7 @@ class Matrix {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols>::Matrix(T value, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
   a_ = new T[size()];
-  for (std::size_t i = 0; i < size(); i++) {
+  for (std::size_t i = 0; i < size(); ++i) {
     a_[i] = value;
   }
 }
@@ -116,8 +114,8 @@ Matrix<T, Rows, Cols>::Matrix(T value, std::size_t rows, std::size_t cols) : row
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols>::Matrix(const Vector<T>& vec, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
   a_ = new T[size()];
-  for (std::size_t col = 0; col < cols_; col++) {
-    for (std::size_t row = 0; row < rows_; row++) {
+  for (std::size_t col = 0; col < cols_; ++col) {
+    for (std::size_t row = 0; row < rows_; ++row) {
       a_[row * Rows + col] = vec[col][row];
     }
   }
@@ -126,17 +124,21 @@ Matrix<T, Rows, Cols>::Matrix(const Vector<T>& vec, std::size_t rows, std::size_
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols>::Matrix(Matrix<T, Rows, Cols> const& other) : rows_(other.rows_), cols_(other.cols_) {
   a_ = new T[size()];
-  for (std::size_t i = 0; i < rows_ * cols_; i++) {
+  for (std::size_t i = 0; i < rows_ * cols_; ++i) {
     a_[i] = other.a_[i];
   }
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols>& Matrix<T, Rows, Cols>::operator=(Matrix const& other) {
+  if (this == &other) {
+    return *this;
+  }
+
   rows_ = other.rows_;
   cols_ = other.cols_;
   a_ = new T[size()];
-  for (std::size_t i = 0; i < rows_ * cols_; i++) {
+  for (std::size_t i = 0; i < rows_ * cols_; ++i) {
     a_[i] = other.a_[i];
   }
   return *this;
@@ -145,7 +147,7 @@ Matrix<T, Rows, Cols>& Matrix<T, Rows, Cols>::operator=(Matrix const& other) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Vector<T, Cols> Matrix<T, Rows, Cols>::GetRow(std::size_t row) const{
   Vector<T, Cols> res(cols_);
-  for (std::size_t i = 0; i < cols_; i++) {
+  for (std::size_t i = 0; i < cols_; ++i) {
     res[i] = a_[row * rows_ + i];
   }
   return res;
@@ -154,7 +156,7 @@ Vector<T, Cols> Matrix<T, Rows, Cols>::GetRow(std::size_t row) const{
 template<typename T, std::size_t Rows, std::size_t Cols>
 Vector<T, Rows>  Matrix<T, Rows, Cols>::GetCol(std::size_t col) const {
   Vector<T, Rows> res(rows_);
-  for (std::size_t i = 0; i < rows_; i++) {
+  for (std::size_t i = 0; i < rows_; ++i) {
     res[i] = a_[i * rows_ + col];
   }
   return res;
@@ -163,7 +165,7 @@ Vector<T, Rows>  Matrix<T, Rows, Cols>::GetCol(std::size_t col) const {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Vector<T, Rows> Matrix<T, Rows, Cols>::GetDiag() const {
   Vector<T, Rows> res(rows_);
-  for (std::size_t i = 0; i < rows_; i++) {
+  for (std::size_t i = 0; i < rows_; ++i) {
     res[i] = a_[i * rows_ + i];
   }
   return res;
@@ -171,27 +173,42 @@ Vector<T, Rows> Matrix<T, Rows, Cols>::GetDiag() const {
 
 template <typename T, std::size_t Rows, std::size_t Cols>
 T Matrix<T, Rows, Cols>::Get(std::size_t row, std::size_t col) const {
-  assert(row < rows_ and col < cols_);
+  if (row >= rows_) {
+    throw std::out_of_range("Matrix row index out of range");
+  }
+  if (col >= cols_) {
+    throw std::out_of_range("Matrix col index out of range");
+  }
   return a_[row * rows_ + col];
 }
 
 template <typename T, std::size_t Rows, std::size_t Cols>
 T& Matrix<T, Rows, Cols>::operator()(std::size_t row, std::size_t col) {
-  assert(row < rows_ and col < cols_);
+  if (row >= rows_) {
+    throw std::out_of_range("Matrix row index out of range");
+  }
+  if (col >= cols_) {
+    throw std::out_of_range("Matrix col index out of range");
+  }
   return a_[row * rows_ + col];
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 void Matrix<T, Rows, Cols>::Set(std::size_t row, std::size_t col, T value) {
-  assert(row < rows_ and col < cols_);
+  if (row >= rows_) {
+    throw std::out_of_range("Matrix row index out of range");
+  }
+  if (col >= cols_) {
+    throw std::out_of_range("Matrix col index out of range");
+  }
   a_[row * rows_ + col] = value;
 }
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Cols, Rows> Matrix<T, Rows, Cols>::Transpose() const{
   Matrix<T, Cols, Rows> t(cols_, rows_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       t(col, row) = Get(row, col);
     }
   }
@@ -207,8 +224,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Minor(std::size_t p, std::size_t q)
   std::size_t i = 0, j = 0;
 
   // Цикл проходит по всем элементам в матрице
-  for (std::size_t row = 0; row < n; row++) {
-    for (std::size_t col = 0; col < n; col++)
+  for (std::size_t row = 0; row < n; ++row) {
+    for (std::size_t col = 0; col < n; ++col)
     {
       //  Копирует в res только те элементы, которые не находятся в данном ряде или столбце
       if (row != p && col != q)
@@ -219,7 +236,7 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Minor(std::size_t p, std::size_t q)
         if (j == n - 1)
         {
           j = 0;
-          i++;
+          ++i;
         }
       }
     }
@@ -233,12 +250,10 @@ T Matrix<T, Rows, Cols>::Det(std::size_t n) const {
     return T();
   if (n == 1)
     return a_[0];
-  //if (n == 2)
-    //return (Get(0, 0) * Get(1, 1)) - (Get(0, 1) * Get(1, 0));
 
   int sign = 1;
   T det = 0;  // Результат
-  for (std::size_t i = 0; i < n; i++) {
+  for (std::size_t i = 0; i < n; ++i) {
     // Вычисляем матрицу дополнений для a_[0][i]
     auto minor = Minor(0, i);
     det += sign * Get(0, i) * minor.Det(n-1);
@@ -265,8 +280,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::Adjugate() const {
 
   int sign = 1;
 
-  for (std::size_t i = 0; i < n; i++) {
-    for (std::size_t j = 0; j < n; j++) {
+  for (std::size_t i = 0; i < n; ++i) {
+    for (std::size_t j = 0; j < n; ++j) {
        // temp нужен для хранянения матрицы дополнений
       auto temp = Minor(i, j);
 
@@ -291,8 +306,8 @@ Matrix<double, Rows, Cols> Matrix<T, Rows, Cols>::Inverse() const {
 
   std::size_t n = cols_;
   Matrix<double, Cols, Cols> inverse(n, n);
-  for (std::size_t i = 0; i < n; i++) {
-    for (std::size_t j = 0; j < n; j++) {
+  for (std::size_t i = 0; i < n; ++i) {
+    for (std::size_t j = 0; j < n; ++j) {
       inverse.Set(i, j, adj[i][j] / det);
     }
   }
@@ -302,8 +317,8 @@ Matrix<double, Rows, Cols> Matrix<T, Rows, Cols>::Inverse() const {
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 void Matrix<T, Rows, Cols>::Print() const {
-  for (std::size_t i = 0; i < rows_; i++) {
-    for (std::size_t j = 0; j < cols_; j++) {
+  for (std::size_t i = 0; i < rows_; ++i) {
+    for (std::size_t j = 0; j < cols_; ++j) {
       std::cout << Get(i, j) << '\t';
     }
     std::cout << std::endl;
@@ -314,8 +329,8 @@ void Matrix<T, Rows, Cols>::Print() const {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::AddVector(const Vector<T>& v, Matrix::VectorType type) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       if (type == VectorType::kCol) {
         assert(rows_ == v.size());
         res.Set(row, col, a_[row*rows_ + col] + v[row]);
@@ -331,8 +346,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::AddVector(const Vector<T>& v, Matri
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::SubVector(const Vector<T>& v, Matrix::VectorType type) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       if (type == VectorType::kCol) {
         assert(rows_ == v.size());
         res.Set(row, col, a_[row*rows_ + col] - v[row]);
@@ -348,8 +363,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::SubVector(const Vector<T>& v, Matri
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::MulVector(const Vector<T>& v, Matrix::VectorType type) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       if (type == VectorType::kCol) {
         assert(rows_ == v.size());
         res.Set(row, col, a_[row*rows_ + col] * v[row]);
@@ -365,8 +380,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::MulVector(const Vector<T>& v, Matri
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::DivVector(const Vector<T>& v, Matrix::VectorType type) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       if (type == VectorType::kCol) {
         assert(rows_ == v.size());
         res.Set(row, col, a_[row*rows_ + col] / v[row]);
@@ -382,8 +397,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::DivVector(const Vector<T>& v, Matri
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+(T value) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] + value);
     }
   }
@@ -393,8 +408,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+(T value) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-(T value) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] - value);
     }
   }
@@ -404,8 +419,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-(T value) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*(T value) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] * value);
     }
   }
@@ -415,8 +430,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*(T value) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/(T value) {
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] / value);
     }
   }
@@ -427,8 +442,8 @@ template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] + other.a_[row*rows_ + col]);
     }
   }
@@ -439,8 +454,8 @@ template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] - other.a_[row*rows_ + col]);
     }
   }
@@ -451,8 +466,8 @@ template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] * other.a_[row*rows_ + col]);
     }
   }
@@ -463,8 +478,8 @@ template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
   Matrix<T, Rows, Cols> res(rows_, cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       res.Set(row, col, a_[row*rows_ + col] / other.a_[row*rows_ + col]);
     }
   }
@@ -473,8 +488,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/(const Matrix<T, Rows, Col
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(T value) {
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] + value);
     }
   }
@@ -483,8 +498,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(T value) {
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(T value) {
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] - value);
     }
   }
@@ -493,8 +508,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(T value) {
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(T value) {
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] * value);
     }
   }
@@ -503,8 +518,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(T value) {
 
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(T value) {
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] / value);
     }
   }
@@ -514,8 +529,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(T value) {
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] + other.a_[row*rows_ + col]);
     }
   }
@@ -525,8 +540,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator+=(const Matrix<T, Rows, Co
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] - other.a_[row*rows_ + col]);
     }
   }
@@ -536,8 +551,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator-=(const Matrix<T, Rows, Co
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] * other.a_[row*rows_ + col]);
     }
   }
@@ -547,8 +562,8 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator*=(const Matrix<T, Rows, Co
 template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(const Matrix<T, Rows, Cols> &other) {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
-  for (std::size_t row = 0; row < rows_; row++) {
-    for (std::size_t col = 0; col < cols_; col++) {
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
       Set(row, col, a_[row*rows_ + col] / other.a_[row*rows_ + col]);
     }
   }
@@ -558,7 +573,7 @@ Matrix<T, Rows, Cols> Matrix<T, Rows, Cols>::operator/=(const Matrix<T, Rows, Co
 template<typename T, std::size_t Rows, std::size_t Cols>
 T Matrix<T, Rows, Cols>::Sum() const {
   T sum = 0;
-  for (std::size_t i = 0; i < rows_*cols_; i++) {
+  for (std::size_t i = 0; i < rows_*cols_; ++i) {
     sum += a_[i];
   }
   return sum;
@@ -568,8 +583,8 @@ template<typename T, std::size_t Rows, std::size_t Cols>
 Matrix<T> Matrix<T, Rows, Cols>::Slice(std::size_t start_rows, std::size_t end_rows,
                             std::size_t start_cols, std::size_t end_cols) const {
   Matrix<T> res(end_rows - start_rows, end_cols - start_cols);
-  for (std::size_t row = 0; row < (end_rows - start_rows); row++) {
-    for (std::size_t col = 0; col < (end_cols - start_cols); col++) {
+  for (std::size_t row = 0; row < (end_rows - start_rows); ++row) {
+    for (std::size_t col = 0; col < (end_cols - start_cols); ++col) {
       T temp = Get(row + start_rows, col + start_cols);
       res.Set(row, col, temp);
     }
@@ -583,10 +598,10 @@ Matrix<T, Rows, Cols2> Matrix<T, Rows, Cols>::MatrixProduct(const Matrix<T, Cols
   assert(cols_ == other.rows());
   Matrix<T, Rows, Cols2> res(rows_, other.cols());
 
-  for (std::size_t i = 0; i < rows_; i++) {
-    for (std::size_t j = 0; j < other.cols(); j++) {
+  for (std::size_t i = 0; i < rows_; ++i) {
+    for (std::size_t j = 0; j < other.cols(); ++j) {
       T sum = T();
-      for (std::size_t k = 0; k < cols_; k++) {
+      for (std::size_t k = 0; k < cols_; ++k) {
         sum += Get(i, k) * other.Get(k, j);
       }
       res.Set(i, j, sum);
@@ -594,5 +609,3 @@ Matrix<T, Rows, Cols2> Matrix<T, Rows, Cols>::MatrixProduct(const Matrix<T, Cols
   }
   return res;
 }
-
-#endif //DZ2_MATRIX_H
