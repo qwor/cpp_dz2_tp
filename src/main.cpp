@@ -11,6 +11,8 @@ int main() {
   }
   Vector<double, 3> v;
   std::cout << v;
-  std::cout << m;
   std::cout << m.Det();
+
+  Matrix<double, 2, 4> m2;
+  std::cout << m2.Transpose();
 }

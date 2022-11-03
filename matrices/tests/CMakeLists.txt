@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.18)
 project(matrices_test)
 
 # GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 14)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined")
+if (UNIX AND NOT APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=memory -fPIE -pie -fno-omit-frame-pointer -g")
+endif()
 
 include(FetchContent)
 FetchContent_Declare(
@@ -18,7 +23,6 @@ include(GoogleTest)
 
 # Collects the names of all the source files in the specified directory
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRC)
-# file(GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
