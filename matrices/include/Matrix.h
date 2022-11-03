@@ -6,7 +6,6 @@
 
 #include <utility>
 #include <iostream>
-#include <array>
 #include <stdexcept>
 
 #include "Vector.h"
@@ -23,12 +22,16 @@ class Matrix {
   // конструктор создания матрицы из чисел
   Matrix(T value, std::size_t rows, std::size_t cols);
   explicit Matrix(T value) : Matrix(value, N, M) {}
-  Matrix(std::size_t rows, std::size_t cols) : Matrix(0, rows, cols) {}
+  Matrix(std::size_t rows, std::size_t cols) : Matrix(T(), rows, cols) {}
   Matrix() : Matrix(N, M) {}
 
   // конструктор создания матрицы из векторов-столбцов
-  Matrix(const Vector<T, N>& value, std::size_t rows, std::size_t cols);
-  explicit Matrix(const Vector<T, N>& value) : Matrix(value, rows, cols) {}
+  Matrix(const Vector<T, N>& vec, std::size_t rows, std::size_t cols);
+  explicit Matrix(const Vector<T, N>& vec) : Matrix(vec, N, M) {}
+
+  // конструктор создания матрицы из массива
+  Matrix(T* a, std::size_t rows, std::size_t cols);
+  explicit Matrix(T* a) : Matrix(a, N, M) {}
 
   // Конструктор копирования
   Matrix(Matrix const&);
@@ -38,7 +41,7 @@ class Matrix {
   std::size_t rows() const { return rows_; }
   std::size_t cols() const { return cols_; }
   std::size_t size() const { return rows_ * cols_; }
-  auto& UnderLyingArray() { return a_; }
+  T* UnderLyingArray() { return a_; }
 
   Vector<T, M> GetRow(std::size_t row) const;
   Vector<T, M> operator[](std::size_t row) const { return GetRow(row); }
@@ -68,24 +71,21 @@ class Matrix {
   Matrix<T, N, M> operator-=(T value) { return OpValue(Op::kSub, value); }
   Matrix<T, N, M> operator*=(T value) { return OpValue(Op::kMul, value); }
   Matrix<T, N, M> operator/=(T value) { return OpValue(Op::kDiv, value); }
-  Matrix<T, N, M> operator+=(const Vector<T>& v) { return OpVector(Op::kAdd, v); }
-  Matrix<T, N, M> operator-=(const Vector<T>& v) { return OpVector(Op::kSub, v); }
-  Matrix<T, N, M> operator*=(const Vector<T>& v) { return OpVector(Op::kMul, v); }
-  Matrix<T, N, M> operator/=(const Vector<T>& v) { return OpVector(Op::kDiv, v); }
+  Matrix<T, N, M> operator+=(const Vector<T, N>& v) { return OpVector(Op::kAdd, v); }
+  Matrix<T, N, M> operator-=(const Vector<T, N>& v) { return OpVector(Op::kSub, v); }
+  Matrix<T, N, M> operator*=(const Vector<T, N>& v) { return OpVector(Op::kMul, v); }
+  Matrix<T, N, M> operator/=(const Vector<T, N>& v) { return OpVector(Op::kDiv, v); }
   Matrix<T, N, M> operator+=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kAdd, other); }
   Matrix<T, N, M> operator-=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kSub, other); }
   Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kMul, other); }
   Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kDiv, other); }
 
-  // Каждый ряд (или столбец) матрицы и вектор
+  // Каждый столбец матрицы и вектор
+  // Каждый ряд матрицы и вектор реализован перегрузкой операторов
   Matrix<T, N, M> AddVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kAdd, v, true); return res; }
   Matrix<T, N, M> SubVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kSub, v, true); return res; }
   Matrix<T, N, M> MulVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kMul, v, true); return res; }
   Matrix<T, N, M> DivVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kDiv, v, true); return res; }
-  Matrix<T, N, M> AddVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kAdd, v); return res; }
-  Matrix<T, N, M> SubVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kSub, v); return res; }
-  Matrix<T, N, M> MulVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kMul, v); return res; }
-  Matrix<T, N, M> DivVecVer(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kDiv, v); return res; }
 
   Matrix<T, N, M> operator+(T value) { Matrix<T, N, M> res(*this); res += value; return res; }
   Matrix<T, N, M> operator-(T value) { Matrix<T, N, M> res(*this); res -= value; return res; }
@@ -147,6 +147,12 @@ Matrix<T, N, M>::Matrix(const Vector<T, N>& vec, std::size_t rows, std::size_t c
       a_[row * cols_ + col] = vec[row];
     }
   }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M>::Matrix(T* a, std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {
+  a_ = new T[size()];
+  std::copy(a, a + size(), a_);
 }
 
 template<typename T, std::size_t N, std::size_t M>

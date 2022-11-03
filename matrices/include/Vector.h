@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <iostream>
 #include <stdexcept>
 #include <cmath>
@@ -21,10 +20,14 @@ std::ostream & operator<<(std::ostream &os, const Vector<T, N>& v);
 template <typename T, std::size_t N = 0>
 class Vector {
  public:
+  // конструктор создания вектора из числа
   Vector(T value, std::size_t size);
   explicit Vector(std::size_t size) : Vector(T(), size) {}
   Vector() : Vector(N) {}
-  Vector(T* a, std::size_t size) : a_(a), size_(size) {}
+
+  // конструктор создания вектора из массива
+  Vector(T* a, std::size_t size);
+  explicit Vector(T* a) : Vector(a, N) {}
 
   Vector(Vector const& other);
   Vector& operator=(Vector const& other);
@@ -37,7 +40,7 @@ class Vector {
   T DotProduct(const Vector<T, N>& other) const;
   Vector<T> Slice(std::size_t start, std::size_t end) const;
   Vector<T> Slice(std::size_t start) { return Slice(start, size()); };
-  std::array<T, N> UnderlyingArray() { return a_; }
+  T* UnderlyingArray() { return a_; }
   double Magnitude() const;
   void Normalize();
   T Sum() const;
@@ -93,6 +96,12 @@ Vector<T, N>::Vector(T value, std::size_t size) : size_(size) {
 }
 
 template<typename T, std::size_t N>
+Vector<T, N>::Vector(T* a, std::size_t size) : size_(size) {
+  a_ = new T[size_];
+  std::copy(a, a + size_, a_);
+}
+
+template<typename T, std::size_t N>
 Vector<T, N>::Vector(Vector<T, N> const& other) : size_(other.size_) {
   a_ = new T[size_];
   for (std::size_t i = 0; i < size_; ++i) {
@@ -117,7 +126,7 @@ template <typename T, std::size_t N>
 double Vector<T, N>::Magnitude() const{
   double res = 0;
   for (std::size_t i = 0; i < size_; ++i) {
-    res += a_[i] * a_[i];
+    res += static_cast<double>(a_[i] * a_[i]);
   }
   return sqrt(res);
 }
@@ -133,11 +142,10 @@ void Vector<T, N>::Normalize() {
 template<typename T, std::size_t N>
 template<std::size_t M>
 Matrix<T, N, M> Vector<T, N>::CrossProduct(const Vector<T, M> &other) const {
-  Matrix<T, N, M> res(size_, other.size_);
+  Matrix<T, N, M> res(size_, other.size());
   for (std::size_t i = 0; i < size_; ++i) {
-    for (std::size_t j = 0; j < other.size_; ++j) {
-      T product = a_[i] * other.a_[j];
-      res.Set(i, j, product);
+    for (std::size_t j = 0; j < other.size(); ++j) {
+      res(i, j) = a_[i] * other[j];
     }
   }
   return res;
@@ -248,3 +256,5 @@ std::ostream &operator<<(std::ostream &os, const Vector<T, N> &v) {
   }
   return os << std::endl;
 }
+
+// TODO: Vector * Matrix
