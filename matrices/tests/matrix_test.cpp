@@ -225,33 +225,280 @@ TEST(MatrixTest, Det) {
   EXPECT_EQ(m.Det(), 1);
 }
 
+TEST(MatrixTest, AddValue) {
+  Matrix<int, 2> mat_a;
+  auto mat_b = mat_a + 1;
 
-TEST(MatrixTest, Arithmetic) {
-  Matrix<int, 3ULL, 3ULL> mat_a;
-  auto mat_b = (((mat_a + 5) - 1) * 2) / 8;
-  EXPECT_EQ(mat_b.Sum(), 9);
+  EXPECT_EQ(mat_b.Sum(), 4);
+}
 
-  mat_a += 5;
-  mat_a -= 1;
-  mat_a *= 2;
-  mat_a /= 8;
-  EXPECT_EQ(mat_a.Sum(), 9);
+TEST(MatrixTest, SubValue) {
+  Matrix<int, 2> mat_a(2);
+  auto mat_b = mat_a - 1;
 
-  auto mat_c = (((mat_a + mat_b) - mat_b) * mat_b) / mat_b;
-  EXPECT_EQ(mat_c.Sum(), 9);
+  EXPECT_EQ(mat_b.Sum(), 4);
+}
 
+TEST(MatrixTest, MulValue) {
+  Matrix<int, 2> mat_a(1);
+  auto mat_b = mat_a * 2;
+
+  EXPECT_EQ(mat_b.Sum(), 8);
+}
+
+TEST(MatrixTest, DivValue) {
+  Matrix<int, 2> mat_a(4);
+  auto mat_b = mat_a / 4;
+
+  EXPECT_EQ(mat_b.Sum(), 4);
+}
+
+TEST(MatrixTest, AddAssignValue) {
+  Matrix<int, 2> mat;
+  mat += 1;
+
+  EXPECT_EQ(mat.Sum(), 4);
+}
+
+TEST(MatrixTest, SubAssignValue) {
+  Matrix<int, 2> mat(2);
+  mat -= 1;
+
+  EXPECT_EQ(mat.Sum(), 4);
+}
+
+TEST(MatrixTest, MulAssignValue) {
+  Matrix<int, 2> mat(1);
+  mat *= 2;
+
+  EXPECT_EQ(mat.Sum(), 8);
+}
+
+TEST(MatrixTest, DivAssignValue) {
+  Matrix<int, 2> mat(4);
+  mat /= 4;
+
+  EXPECT_EQ(mat.Sum(), 4);
+}
+
+TEST(MatrixTest, AddColVector) {
+  Matrix<int, 2> mat_a;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a + vec;
+
+  EXPECT_EQ(mat_b.GetCol(0), vec);
+  EXPECT_EQ(mat_b.GetCol(1), vec);
+}
+
+TEST(MatrixTest, SubColVector) {
+  Matrix<int, 2> mat_a;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a - vec;
+
+  auto minus_vec = Vector<int, 2>() - vec;
+
+  EXPECT_EQ(mat_b.GetCol(0), minus_vec);
+  EXPECT_EQ(mat_b.GetCol(1), minus_vec);
+}
+
+TEST(MatrixTest, MulColVector) {
+  Matrix<int, 2> mat_a(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a * vec;
+
+  auto mul_vec = vec * 2;
+
+  EXPECT_EQ(mat_b.GetCol(0), mul_vec);
+  EXPECT_EQ(mat_b.GetCol(1), mul_vec);
+}
+
+TEST(MatrixTest, DivColVector) {
+  Matrix<int, 2> mat_a(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a / vec;
+
+  auto div_vec = Vector<int, 2>(2, 2) / vec;
+
+  EXPECT_EQ(mat_b.GetCol(0), div_vec);
+  EXPECT_EQ(mat_b.GetCol(1), div_vec);
+}
+
+TEST(MatrixTest, AddAssignColVector) {
+  Matrix<int, 2> mat;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  mat += vec;
+
+  EXPECT_EQ(mat.GetCol(0), vec);
+  EXPECT_EQ(mat.GetCol(1), vec);
+}
+
+TEST(MatrixTest, SubAssignColVector) {
+  Matrix<int, 2> mat;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  mat -= vec;
+
+  auto minus_vec = Vector<int, 2>() - vec;
+
+  EXPECT_EQ(mat.GetCol(0), minus_vec);
+  EXPECT_EQ(mat.GetCol(1), minus_vec);
+}
+
+TEST(MatrixTest, MulAssignColVector) {
+  Matrix<int, 2> mat(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  mat *= vec;
+
+  auto mul_vec = vec * 2;
+
+  EXPECT_EQ(mat.GetCol(0), mul_vec);
+  EXPECT_EQ(mat.GetCol(1), mul_vec);
+}
+
+TEST(MatrixTest, DivAssignColVector) {
+  Matrix<int, 2> mat(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  mat /= vec;
+
+  auto div_vec = Vector<int, 2>(2, 2) / vec;
+
+  EXPECT_EQ(mat.GetCol(0), div_vec);
+  EXPECT_EQ(mat.GetCol(1), div_vec);
+}
+
+TEST(MatrixTest, AddRowVector) {
+  Matrix<int, 2> mat_a;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a.AddRowVec(vec);
+
+  EXPECT_EQ(mat_b[0], vec);
+  EXPECT_EQ(mat_b[1], vec);
+}
+
+TEST(MatrixTest, SubRowVector) {
+  Matrix<int, 2> mat_a;
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a.SubRowVec(vec);
+
+  auto minus_vec = Vector<int, 2>() - vec;
+
+  EXPECT_EQ(mat_b[0], minus_vec);
+  EXPECT_EQ(mat_b[1], minus_vec);
+}
+
+TEST(MatrixTest, MulRowVector) {
+  Matrix<int, 2> mat_a(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a.MulRowVec(vec);
+
+  auto mul_vec = vec * 2;
+
+  EXPECT_EQ(mat_b[0], mul_vec);
+  EXPECT_EQ(mat_b[1], mul_vec);
+}
+
+TEST(MatrixTest, DivRowVector) {
+  Matrix<int, 2> mat_a(2);
+  Vector<int, 2> vec;
+  vec[0] = 1;
+  vec[1] = 2;
+  auto mat_b = mat_a.DivRowVec(vec);
+
+  auto div_vec = Vector<int, 2>(2, 2) / vec;
+
+  EXPECT_EQ(mat_b[0], div_vec);
+  EXPECT_EQ(mat_b[1], div_vec);
+}
+
+TEST(MatrixTest, AddMatrix) {
+  Matrix<int, 2> mat_a(1);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(3);
+  auto mat_c = mat_a + mat_b;
+
+  EXPECT_EQ(mat_c, mat_example);
+}
+
+TEST(MatrixTest, SubMatrix) {
+  Matrix<int, 2> mat_a(3);
+  Matrix<int, 2> mat_b(1);
+  Matrix<int, 2> mat_example(2);
+  auto mat_c = mat_a - mat_b;
+
+  EXPECT_EQ(mat_c, mat_example);
+}
+
+TEST(MatrixTest, MulMatrix) {
+  Matrix<int, 2> mat_a(1);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(2);
+  auto mat_c = mat_a * mat_b;
+
+  EXPECT_EQ(mat_c, mat_example);
+}
+
+TEST(MatrixTest, DivMatrix) {
+  Matrix<int, 2> mat_a(4);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(2);
+  auto mat_c = mat_a / mat_b;
+
+  EXPECT_EQ(mat_c, mat_example);
+}
+
+TEST(MatrixTest, AddAssignMatrix) {
+  Matrix<int, 2> mat_a(1);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(3);
   mat_a += mat_b;
+
+  EXPECT_EQ(mat_a, mat_example);
+}
+
+TEST(MatrixTest, SubAssignMatrix) {
+  Matrix<int, 2> mat_a(3);
+  Matrix<int, 2> mat_b(1);
+  Matrix<int, 2> mat_example(2);
   mat_a -= mat_b;
+
+  EXPECT_EQ(mat_a, mat_example);
+}
+
+TEST(MatrixTest, MulAssignMatrix) {
+  Matrix<int, 2> mat_a(1);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(2);
   mat_a *= mat_b;
+
+  EXPECT_EQ(mat_a, mat_example);
+}
+
+TEST(MatrixTest, DivAssignMatrix) {
+  Matrix<int, 2> mat_a(4);
+  Matrix<int, 2> mat_b(2);
+  Matrix<int, 2> mat_example(2);
   mat_a /= mat_b;
-  EXPECT_EQ(mat_a.Sum(), 9);
 
-  Vector<int, 3ULL> vec;
-  vec += 2;
-  mat_a = mat_a + vec;
-  mat_a = mat_a - vec;
-  mat_a = mat_a.MulVecHor(vec);
-  mat_a = mat_a.DivVecHor(vec);
-
-  EXPECT_EQ(mat_a.Sum(), 9);
+  EXPECT_EQ(mat_a, mat_example);
 }

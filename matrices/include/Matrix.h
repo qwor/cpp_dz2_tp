@@ -80,12 +80,12 @@ class Matrix {
   Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kMul, other); }
   Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kDiv, other); }
 
-  // Каждый столбец матрицы и вектор
-  // Каждый ряд матрицы и вектор реализован перегрузкой операторов
-  Matrix<T, N, M> AddVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kAdd, v, true); return res; }
-  Matrix<T, N, M> SubVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kSub, v, true); return res; }
-  Matrix<T, N, M> MulVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kMul, v, true); return res; }
-  Matrix<T, N, M> DivVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kDiv, v, true); return res; }
+  // Реализация операций над матрицей и вектором-строкой
+  // Реализация операций над матрицей и вектором-столбцом реализована перегрузкой операторов
+  Matrix<T, N, M> AddRowVec(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); res.OpVector(Op::kAdd, v, true); return res; }
+  Matrix<T, N, M> SubRowVec(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); res.OpVector(Op::kSub, v, true); return res; }
+  Matrix<T, N, M> MulRowVec(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); res.OpVector(Op::kMul, v, true); return res; }
+  Matrix<T, N, M> DivRowVec(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); res.OpVector(Op::kDiv, v, true); return res; }
 
   Matrix<T, N, M> operator+(T value) { Matrix<T, N, M> res(*this); res += value; return res; }
   Matrix<T, N, M> operator-(T value) { Matrix<T, N, M> res(*this); res -= value; return res; }

@@ -13,8 +13,7 @@ set(LIB_NAME matrices)
 add_library(${LIB_NAME} INTERFACE)
 target_sources(${LIB_NAME} INTERFACE ${HEADERS})
 
-target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include>
-        )
+target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 set(MatricesLib_LIB ${LIB_NAME})
 set(MatricesLib_LIB ${MatricesLib_LIB} PARENT_SCOPE)
