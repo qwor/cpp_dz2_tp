@@ -11,6 +11,12 @@
 
 #include "Vector.h"
 
+template <typename T, std::size_t N, std::size_t M>
+class Matrix;
+
+template <typename T, std::size_t N, std::size_t M>
+std::ostream& operator<<(std::ostream &os, const Matrix<T, N, M>& m);
+
 template <typename T, std::size_t N = 0, std::size_t M = N>
 class Matrix {
  public:
@@ -55,7 +61,8 @@ class Matrix {
   Matrix<double, N, M> Inverse() const;
 
   T Sum() const;
-  void Print() const;
+
+  static Matrix<T, N, M> GetIdentityMatrix();
 
   // Каждый ряд (или столбец) матрицы и вектор
   Matrix<T, N, M> AddVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kAdd, v, true); }
@@ -65,7 +72,7 @@ class Matrix {
   Matrix<T, N, M> MulVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kMul, v, true); }
   Matrix<T, N, M> MulVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kMul, v); }
   Matrix<T, N, M> DivVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v, true); }
-  Matrix<T, N, M> DivVectorVert(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v, true); }
+  Matrix<T, N, M> DivVectorVert(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v); }
 
   Matrix<T, N, M> operator+(T value) { return OperateValue(Op::kAdd, value); }
   Matrix<T, N, M> operator-(T value) { return OperateValue(Op::kSub, value); }
@@ -93,7 +100,11 @@ class Matrix {
   Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kMul, other); return *this; }
   Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kDiv, other); return *this; }
 
+  bool operator==(const Matrix<T, N, M>& other) const;
+
   Matrix<T> Slice(std::size_t start_rows, std::size_t end_rows, std::size_t start_cols, std::size_t end_cols) const;
+
+  friend std::ostream & operator<< <> (std::ostream &os, const Matrix<T, N, M>& m);
 
  private:
   T* a_;
@@ -190,12 +201,7 @@ Vector<T, N> Matrix<T, N, M>::GetDiag() const {
 
 template <typename T, std::size_t N, std::size_t M>
 T Matrix<T, N, M>::Get(std::size_t row, std::size_t col) const {
-  if (row >= rows_) {
-    throw std::out_of_range("Matrix row index out of range");
-  }
-  if (col >= cols_) {
-    throw std::out_of_range("Matrix col index out of range");
-  }
+  CheckIndex(row, col);
   return a_[row * rows_ + col];
 }
 
@@ -212,12 +218,7 @@ T& Matrix<T, N, M>::operator()(std::size_t row, std::size_t col) {
 
 template<typename T, std::size_t N, std::size_t M>
 void Matrix<T, N, M>::Set(std::size_t row, std::size_t col, T value) {
-  if (row >= rows_) {
-    throw std::out_of_range("Matrix row index out of range");
-  }
-  if (col >= cols_) {
-    throw std::out_of_range("Matrix col index out of range");
-  }
+  CheckIndex(row, col);
   a_[row * rows_ + col] = value;
 }
 
@@ -263,10 +264,11 @@ Matrix<T, N, M> Matrix<T, N, M>::Rinor(std::size_t p, std::size_t q) const{
 
 template<typename T, std::size_t N, std::size_t M>
 T Matrix<T, N, M>::Det(std::size_t n) const {
-  if (n == 0)
+  if (n == 0) {
     return T();
-  if (n == 1)
+  } else if (n == 1) {
     return a_[0];
+  }
 
   int sign = 1;
   T det = 0;  // Результат
@@ -316,7 +318,9 @@ Matrix<T, N, M> Matrix<T, N, M>::Adjugate() const {
 template<typename T, std::size_t N, std::size_t M>
 Matrix<double, N, M> Matrix<T, N, M>::Inverse() const {
   T det = Det();
-  assert(det != 0);
+  if (det == 0) {
+    throw std::logic_error("Determinant must not be 0 if you want to find the inverse of a matrix");
+  }
 
   // Находим матрицу дополнений
   auto adj = Adjugate();
@@ -330,17 +334,6 @@ Matrix<double, N, M> Matrix<T, N, M>::Inverse() const {
   }
 
   return inverse;
-}
-
-template<typename T, std::size_t N, std::size_t M>
-void Matrix<T, N, M>::Print() const {
-  for (std::size_t i = 0; i < rows_; ++i) {
-    for (std::size_t j = 0; j < cols_; ++j) {
-      std::cout << Get(i, j) << '\t';
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
 }
 
 template<typename T, std::size_t N, std::size_t M>
@@ -498,7 +491,46 @@ void Matrix<T, N, M>::CheckMatrixSquare() const {
 
 template<typename T, std::size_t N, std::size_t M>
 void Matrix<T, N, M>::CheckIndex(std::size_t row, std::size_t col) const {
-  if (!(row < rows_ && col < cols_)) {
-    throw std::out_of_range("Index of the matrix is ot of range");
+  if (row >= rows_) {
+    throw std::out_of_range("Matrix row index out of range");
   }
+  if (col >= cols_) {
+    throw std::out_of_range("Matrix col index out of range");
+  }
+}
+
+template<typename T, std::size_t N, std::size_t M>
+Matrix<T, N, M> Matrix<T, N, M>::GetIdentityMatrix() {
+  Matrix<T, N, M> res;
+  res.CheckMatrixSquare();
+  for (std::size_t i = 0; i < res.cols_; ++i) {
+    res(i, i) = static_cast<T>(1);
+  }
+  return res;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+bool Matrix<T, N, M>::operator==(const Matrix<T, N, M> &other) const {
+  if (rows_ != other.rows_ || cols_ != other.cols_) {
+    return false;
+  }
+  for (std::size_t row = 0; row < rows_; ++row) {
+    for (std::size_t col = 0; col < cols_; ++col) {
+      if (a_[row * rows_ + col] != other.a_[row * rows_ + col]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+template<typename T, std::size_t N, std::size_t M>
+std::ostream & operator<<(std::ostream &os, const Matrix<T, N, M>& m) {
+  for (std::size_t row = 0; row < m.rows_; ++row) {
+    for (std::size_t col = 0; col < m.cols_; ++col) {
+      os << m(row, col) << '\t';
+    }
+    os << std::endl;
+  }
+  return os;
 }

@@ -148,8 +148,7 @@ TEST(MatrixTest, Inverse) {
   auto ident = m.MatrixProduct(inverse);
 
   // Проверка на единичную матрицу
-  EXPECT_EQ(ident.GetDiag().Sum(), n);
-  EXPECT_EQ(ident.Sum(), n);
+  EXPECT_EQ(ident, m.GetIdentityMatrix());
 }
 
 TEST(MatrixTest, Det) {

@@ -12,6 +12,12 @@
 template <typename T, std::size_t Rows, std::size_t Cols>
 class Matrix;
 
+template <typename T, std::size_t N>
+class Vector;
+
+template <typename T, std::size_t N>
+std::ostream & operator<<(std::ostream &os, const Vector<T, N>& v);
+
 template <typename T, std::size_t N = 0>
 class Vector {
  public:
@@ -35,7 +41,6 @@ class Vector {
   double Magnitude() const;
   void Normalize();
   T Sum() const;
-  void Print() const;
 
   T Get(std::size_t i) const { return a_[i]; }
   T operator[](std::size_t i) const { return a_[i]; };
@@ -59,6 +64,8 @@ class Vector {
   Vector<T, N> operator*=(const Vector<T, N>& other) { *this = OperateVector(Op::kMul, other); return *this; }
   Vector<T, N> operator/=(const Vector<T, N>& other) { *this = OperateVector(Op::kDiv, other); return *this; }
 
+  bool operator==(const Vector<T, N>& other) const;
+  friend std::ostream& operator<< <> (std::ostream& os, const Vector<T, N>& v);
  private:
   std::size_t size_;
   T* a_;
@@ -164,14 +171,6 @@ T Vector<T, N>::Sum() const {
 }
 
 template<typename T, std::size_t N>
-void Vector<T, N>::Print() const {
-  for (std::size_t i = 0; i < size_; ++i) {
-    std::cout << a_[i] << ' ';
-  }
-  std::cout << std::endl;
-}
-
-template<typename T, std::size_t N>
 Vector<T, N> Vector<T, N>::OperateValue(Op op, T value) {
   Vector<T, N> res(size_);
   for (std::size_t i = 0; i < size_; ++i) {
@@ -221,4 +220,25 @@ void Vector<T, N>::CheckSize(const Vector<T, N> &other) const {
   if (size_ != other.size_) {
     throw std::invalid_argument("Vectors must have the same size");
   }
+}
+
+template<typename T, std::size_t N>
+bool Vector<T, N>::operator==(const Vector<T, N>& other) const {
+  if (size_ != other.size_) {
+    return false;
+  }
+  for (std::size_t i = 0; i < size_; ++i) {
+    if (a_[i] != other.a_[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template<typename T, std::size_t N>
+std::ostream &operator<<(std::ostream &os, const Vector<T, N> &v) {
+  for (std::size_t i = 0; i < v.size_; i++) {
+    os << v[i] << '\t';
+  }
+  return os << std::endl;
 }

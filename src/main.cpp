@@ -1,5 +1,4 @@
 #include <iostream>
-#include <array>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -11,6 +10,7 @@ int main() {
     m.Set(i, i, 1);
   }
   Vector<double, 3> v;
+  std::cout << v;
+  std::cout << m;
   std::cout << m.Det();
-
 }
