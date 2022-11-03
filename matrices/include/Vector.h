@@ -41,6 +41,7 @@ class Vector {
   double Magnitude() const;
   void Normalize();
   T Sum() const;
+  void Fill(T value);
 
   T Get(std::size_t i) const { return a_[i]; }
   T operator[](std::size_t i) const { return a_[i]; };
@@ -168,6 +169,13 @@ T Vector<T, N>::Sum() const {
     sum += a_[i];
   }
   return sum;
+}
+
+template<typename T, std::size_t N>
+void Vector<T, N>::Fill(T value) {
+  for (std::size_t i = 0; i < size_; i++) {
+    a_[i] = value;
+  }
 }
 
 template<typename T, std::size_t N>
