@@ -3,11 +3,7 @@ project(matrices_test)
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined")
-if (UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=memory -fPIE -pie -fno-omit-frame-pointer -g")
-endif()
 
 include(FetchContent)
 FetchContent_Declare(
