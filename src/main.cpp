@@ -4,8 +4,17 @@
 #include <Matrix.h>
 
 int main() {
-  Matrix<double, 2> m1(1);
-  Matrix<double, 2> m2(2);
-  auto m3 = m1 + m2;
-  std::cout << m1 << std::endl << m2 << std::endl << m3;
+  Vector<int, 3> vec_a;
+  for (std::size_t i = 0; i < vec_a.size(); ++i) {
+    vec_a[i] = static_cast<int>(i);
+  }
+  Matrix<int, 4, 3> mat;
+  int k = 0;
+  for (std::size_t i = 0; i < mat.rows(); ++i) {
+    for (std::size_t j = 0; j < mat.cols(); ++j) {
+      mat(i, j) = k++;
+    }
+  }
+  auto vec_b = vec_a * mat;
+  std::cout << vec_b;
 }

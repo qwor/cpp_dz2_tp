@@ -250,3 +250,23 @@ TEST(VectorTest, DivAssignVector) {
 
   EXPECT_EQ(vec_a.Sum(), 8);
 }
+
+TEST(VectorTest, MulMatrix) {
+  Vector<int, 3> vec_a;
+  for (std::size_t i = 0; i < vec_a.size(); ++i) {
+    vec_a[i] = static_cast<int>(i);
+  }
+  Matrix<int, 4, 3> mat;
+  int k = 0;
+  for (std::size_t i = 0; i < mat.rows(); ++i) {
+    for (std::size_t j = 0; j < mat.cols(); ++j) {
+      mat(i, j) = k++;
+    }
+  }
+  auto vec_b = vec_a * mat;
+
+  int array_example[] { 5, 14, 23, 32 };
+  Vector<int, 4> vec_example(array_example);
+
+  EXPECT_EQ(vec_b, vec_example);
+}

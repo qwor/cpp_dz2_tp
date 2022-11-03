@@ -68,6 +68,9 @@ class Vector {
   Vector<T, N> operator*(const Vector<T, N>& other) { Vector<T, N> res(*this); return res *= other; }
   Vector<T, N> operator/(const Vector<T, N>& other) { Vector<T, N> res(*this); return res /= other; }
 
+  template <std::size_t M>
+  Vector<T, M> operator*(const Matrix<T, M, N>& m);
+
   bool operator==(const Vector<T, N>& other) const;
   friend std::ostream& operator<< <> (std::ostream& os, const Vector<T, N>& v);
  private:
@@ -230,6 +233,18 @@ Vector<T, N> Vector<T, N>::OperateAssignVector(Op op, const Vector<T, N>& other)
 }
 
 template<typename T, std::size_t N>
+template<std::size_t M>
+Vector<T, M> Vector<T, N>::operator*(const Matrix<T, M, N> &m) {
+  Vector<T, M> res;
+  for (std::size_t row = 0; row < m.rows(); row++) {
+    for (std::size_t col = 0; col < m.cols(); col++) {
+      res[row] += m(row, col) * a_[col];
+    }
+  }
+  return res;
+}
+
+template<typename T, std::size_t N>
 void Vector<T, N>::CheckSize(const Vector<T, N> &other) const {
   if (size_ != other.size_) {
     throw std::invalid_argument("Vectors must have the same size");
@@ -256,5 +271,3 @@ std::ostream &operator<<(std::ostream &os, const Vector<T, N> &v) {
   }
   return os << std::endl;
 }
-
-// TODO: Vector * Matrix
