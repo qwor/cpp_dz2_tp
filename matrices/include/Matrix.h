@@ -64,41 +64,41 @@ class Matrix {
 
   static Matrix<T, N, M> GetIdentityMatrix();
 
+  Matrix<T, N, M> operator+=(T value) { return OpValue(Op::kAdd, value); }
+  Matrix<T, N, M> operator-=(T value) { return OpValue(Op::kSub, value); }
+  Matrix<T, N, M> operator*=(T value) { return OpValue(Op::kMul, value); }
+  Matrix<T, N, M> operator/=(T value) { return OpValue(Op::kDiv, value); }
+  Matrix<T, N, M> operator+=(const Vector<T>& v) { return OpVector(Op::kAdd, v); }
+  Matrix<T, N, M> operator-=(const Vector<T>& v) { return OpVector(Op::kSub, v); }
+  Matrix<T, N, M> operator*=(const Vector<T>& v) { return OpVector(Op::kMul, v); }
+  Matrix<T, N, M> operator/=(const Vector<T>& v) { return OpVector(Op::kDiv, v); }
+  Matrix<T, N, M> operator+=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kAdd, other); }
+  Matrix<T, N, M> operator-=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kSub, other); }
+  Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kMul, other); }
+  Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { return OpMatrix(Op::kDiv, other); }
+
   // Каждый ряд (или столбец) матрицы и вектор
-  Matrix<T, N, M> AddVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kAdd, v, true); }
-  Matrix<T, N, M> AddVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kAdd, v); }
-  Matrix<T, N, M> SubVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kSub, v, true); }
-  Matrix<T, N, M> SubVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kSub, v); }
-  Matrix<T, N, M> MulVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kMul, v, true); }
-  Matrix<T, N, M> MulVectorVert(const Vector<T, N>& v) { return OperateVector(Op::kMul, v); }
-  Matrix<T, N, M> DivVectorHor(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v, true); }
-  Matrix<T, N, M> DivVectorVert(const Vector<T, M>& v) { return OperateVector(Op::kDiv, v); }
+  Matrix<T, N, M> AddVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kAdd, v, true); return res; }
+  Matrix<T, N, M> SubVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kSub, v, true); return res; }
+  Matrix<T, N, M> MulVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kMul, v, true); return res; }
+  Matrix<T, N, M> DivVecHor(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kDiv, v, true); return res; }
+  Matrix<T, N, M> AddVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kAdd, v); return res; }
+  Matrix<T, N, M> SubVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kSub, v); return res; }
+  Matrix<T, N, M> MulVecVer(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kMul, v); return res; }
+  Matrix<T, N, M> DivVecVer(const Vector<T, M>& v) { Matrix<T, N, M> res(*this); OpVector(Op::kDiv, v); return res; }
 
-  Matrix<T, N, M> operator+(T value) { return OperateValue(Op::kAdd, value); }
-  Matrix<T, N, M> operator-(T value) { return OperateValue(Op::kSub, value); }
-  Matrix<T, N, M> operator*(T value) { return OperateValue(Op::kMul, value); }
-  Matrix<T, N, M> operator/(T value) { return OperateValue(Op::kDiv, value); }
-  Matrix<T, N, M> operator+(const Vector<T, N>& v) { return AddVectorVert(v); }
-  Matrix<T, N, M> operator-(const Vector<T, N>& v) { return SubVectorVert(v); }
-  Matrix<T, N, M> operator*(const Vector<T, N>& v) { return MulVectorVert(v); }
-  Matrix<T, N, M> operator/(const Vector<T, N>& v) { return DivVectorVert(v); }
-  Matrix<T, N, M> operator+(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kAdd, other); }
-  Matrix<T, N, M> operator-(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kSub, other); }
-  Matrix<T, N, M> operator*(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kMul, other); }
-  Matrix<T, N, M> operator/(const Matrix<T, N, M>& other) { return OperateMatrix(Op::kDiv, other); }
-
-  Matrix<T, N, M> operator+=(T value) { *this = OperateValue(Op::kAdd, value); return *this; }
-  Matrix<T, N, M> operator-=(T value) { *this = OperateValue(Op::kSub, value); return *this; }
-  Matrix<T, N, M> operator*=(T value) { *this = OperateValue(Op::kMul, value); return *this; }
-  Matrix<T, N, M> operator/=(T value) { *this = OperateValue(Op::kDiv, value); return *this; }
-  Matrix<T, N, M> operator+=(const Vector<T>& v) { *this = AddVectorVert(v); return *this; }
-  Matrix<T, N, M> operator-=(const Vector<T>& v) { *this = SubVectorVert(v); return *this; }
-  Matrix<T, N, M> operator*=(const Vector<T>& v) { *this = MulVectorVert(v); return *this; }
-  Matrix<T, N, M> operator/=(const Vector<T>& v) { *this = DivVectorVert(v); return *this; }
-  Matrix<T, N, M> operator+=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kAdd, other); return *this; }
-  Matrix<T, N, M> operator-=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kSub, other); return *this; }
-  Matrix<T, N, M> operator*=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kMul, other); return *this; }
-  Matrix<T, N, M> operator/=(const Matrix<T, N, M>& other) { *this = OperateMatrix(Op::kDiv, other); return *this; }
+  Matrix<T, N, M> operator+(T value) { Matrix<T, N, M> res(*this); res += value; return res; }
+  Matrix<T, N, M> operator-(T value) { Matrix<T, N, M> res(*this); res -= value; return res; }
+  Matrix<T, N, M> operator*(T value) { Matrix<T, N, M> res(*this); res *= value; return res; }
+  Matrix<T, N, M> operator/(T value) { Matrix<T, N, M> res(*this); res /= value; return res; }
+  Matrix<T, N, M> operator+(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); res += v; return res; }
+  Matrix<T, N, M> operator-(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); res -= v; return res; }
+  Matrix<T, N, M> operator*(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); res *= v; return res; }
+  Matrix<T, N, M> operator/(const Vector<T, N>& v) { Matrix<T, N, M> res(*this); res /= v; return res; }
+  Matrix<T, N, M> operator+(const Matrix<T, N, M>& other) { Matrix<T, N, M> res(*this); res += other; return res; }
+  Matrix<T, N, M> operator-(const Matrix<T, N, M>& other) { Matrix<T, N, M> res(*this); res -= other; return res; }
+  Matrix<T, N, M> operator*(const Matrix<T, N, M>& other) { Matrix<T, N, M> res(*this); res *= other; return res; }
+  Matrix<T, N, M> operator/(const Matrix<T, N, M>& other) { Matrix<T, N, M> res(*this); res /= other; return res; }
 
   bool operator==(const Matrix<T, N, M>& other) const;
 
@@ -118,10 +118,10 @@ class Matrix {
     kDiv
   };
 
-  Matrix<T, N, M> OperateValue(Op op, T value);
+  Matrix<T, N, M> OpValue(Op op, T value);
   template<std::size_t R>
-  Matrix<T, N, M> OperateVector(Op op, const Vector<T, R>& v, bool horizontal=false);
-  Matrix<T, N, M> OperateMatrix(Op op, const Matrix<T, N, M>& other);
+  Matrix<T, N, M> OpVector(Op op, const Vector<T, R>& v, bool horizontal=false);
+  Matrix<T, N, M> OpMatrix(Op op, const Matrix<T, N, M>& other);
 
   void CheckVectorRowSize(const Vector<T, N>& v) const;
   void CheckVectorColSize(const Vector<T, M>& v) const;
@@ -152,7 +152,7 @@ Matrix<T, N, M>::Matrix(const Vector<T, N>& vec, std::size_t rows, std::size_t c
 template<typename T, std::size_t N, std::size_t M>
 Matrix<T, N, M>::Matrix(Matrix<T, N, M> const& other) : rows_(other.rows_), cols_(other.cols_) {
   a_ = new T[size()];
-  for (std::size_t i = 0; i < rows_ * cols_; ++i) {
+  for (std::size_t i = 0; i < size(); ++i) {
     a_[i] = other.a_[i];
   }
 }
@@ -166,7 +166,7 @@ Matrix<T, N, M>& Matrix<T, N, M>::operator=(Matrix const& other) {
   rows_ = other.rows_;
   cols_ = other.cols_;
   a_ = new T[size()];
-  for (std::size_t i = 0; i < rows_ * cols_; ++i) {
+  for (std::size_t i = 0; i < size(); ++i) {
     a_[i] = other.a_[i];
   }
   return *this;
@@ -293,15 +293,13 @@ Matrix<T, N, M> Matrix<T, N, M>::Adjugate() const {
     return res;
   }
 
-  int sign = 1;
-
   for (std::size_t i = 0; i < n; ++i) {
     for (std::size_t j = 0; j < n; ++j) {
        // temp нужен для хранянения матрицы дополнений
       auto temp = Minor(i, j);
 
       // Знак положительный если сумма ряда и столбца чётна
-      sign = ((i + j) % 2 == 0) ? 1 : -1;
+      int sign = ((i + j) % 2 == 0) ? 1 : -1;
 
       //  Меняем ряды и столбцы, чтобы получить транспонированную матрицу дополнений
       T value = (sign) * temp.Det(n - 1);
@@ -335,7 +333,7 @@ Matrix<double, N, M> Matrix<T, N, M>::Inverse() const {
 template<typename T, std::size_t N, std::size_t M>
 T Matrix<T, N, M>::Sum() const {
   T sum = 0;
-  for (std::size_t i = 0; i < rows_*cols_; ++i) {
+  for (std::size_t i = 0; i < size(); ++i) {
     sum += a_[i];
   }
   return sum;
@@ -375,38 +373,36 @@ Matrix<T, N, R> Matrix<T, N, M>::MatrixProduct(const Matrix<T, M, R> &other) {
 }
 
 template<typename T, std::size_t N, std::size_t M>
-Matrix<T, N, M> Matrix<T, N, M>::OperateValue(Op op, T value) {
-  Matrix<T, N, M> res(rows_, cols_);
+Matrix<T, N, M> Matrix<T, N, M>::OpValue(Op op, T value) {
   for (std::size_t row = 0; row < rows_; ++row) {
     for (std::size_t col = 0; col < cols_; ++col) {
       switch (op) {
         case Op::kAdd:
-          res(row, col) = a_[row*rows_ + col] + value;
+          a_[row * cols_ + col] += value;
           break;
         case Op::kSub:
-          res(row, col) = a_[row*rows_ + col] - value;
+          a_[row * cols_ + col] -= value;
           break;
         case Op::kMul:
-          res(row, col) = a_[row*rows_ + col] * value;
+          a_[row * cols_ + col] *= value;
           break;
         case Op::kDiv:
-          res(row, col) = a_[row*rows_ + col] / value;
+          a_[row * cols_ + col] /= value;
           break;
       }
     }
   }
-  return res;
+  return *this;
 }
 
 template<typename T, std::size_t N, std::size_t M>
 template<std::size_t R>
-Matrix<T, N, M> Matrix<T, N, M>::OperateVector(Matrix::Op op, const Vector<T, R> &v, bool horizontal) {
+Matrix<T, N, M> Matrix<T, N, M>::OpVector(Matrix::Op op, const Vector<T, R> &v, bool horizontal) {
   if (horizontal) {
     CheckVectorColSize(v);
   } else {
     CheckVectorRowSize(v);
   }
-  Matrix<T, N, M> res(rows_, cols_);
   for (std::size_t row = 0; row < rows_; ++row) {
     for (std::size_t col = 0; col < cols_; ++col) {
       auto value = v[row];
@@ -415,46 +411,45 @@ Matrix<T, N, M> Matrix<T, N, M>::OperateVector(Matrix::Op op, const Vector<T, R>
       }
       switch (op) {
         case Op::kAdd:
-          res(row, col) = a_[row*rows_ + col] + value;
+          a_[row * cols_ + col] += value;
           break;
         case Op::kSub:
-          res(row, col) = a_[row*rows_ + col] - value;
+          a_[row * cols_ + col] -= value;
           break;
         case Op::kMul:
-          res(row, col) = a_[row*rows_ + col] * value;
+          a_[row * cols_ + col] *= value;
           break;
         case Op::kDiv:
-          res(row, col) = a_[row*rows_ + col] / value;
+          a_[row * cols_ + col] /= value;
           break;
       }
     }
   }
-  return res;
+  return *this;
 }
 
 template<typename T, std::size_t N, std::size_t M>
-Matrix<T, N, M> Matrix<T, N, M>::OperateMatrix(Op op, const Matrix<T, N, M>& other) {
+Matrix<T, N, M> Matrix<T, N, M>::OpMatrix(Op op, const Matrix<T, N, M>& other) {
   CheckMatrixSize(other);
-  Matrix<T, N, M> res(rows_, cols_);
   for (std::size_t row = 0; row < rows_; ++row) {
     for (std::size_t col = 0; col < cols_; ++col) {
       switch (op) {
         case Op::kAdd:
-          res(row, col) = a_[row * cols_ + col] + other.a_[row * cols_ + col];
+          a_[row * cols_ + col] += other.a_[row * cols_ + col];
           break;
         case Op::kSub:
-          res(row, col) = a_[row * cols_ + col] - other.a_[row * cols_ + col];
+          a_[row * cols_ + col] -= other.a_[row * cols_ + col];
           break;
         case Op::kMul:
-          res(row, col) = a_[row * cols_ + col] * other.a_[row * cols_ + col];
+          a_[row * cols_ + col] *= other.a_[row * cols_ + col];
           break;
         case Op::kDiv:
-          res(row, col) = a_[row * cols_ + col] / other.a_[row * cols_ + col];
+          a_[row * cols_ + col] /= other.a_[row * cols_ + col];
           break;
       }
     }
   }
-  return res;
+  return *this;
 }
 
 template<typename T, std::size_t N, std::size_t M>

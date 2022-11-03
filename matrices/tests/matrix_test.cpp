@@ -64,10 +64,10 @@ TEST(MatrixTest, Arithmetic) {
 
   Vector<int, 3ULL> vec(3);
   vec += 2;
-  mat_a = mat_a.AddVectorVert(vec);
-  mat_a = mat_a.SubVectorVert(vec);
-  mat_a = mat_a.MulVectorHor(vec);
-  mat_a = mat_a.DivVectorHor(vec);
+  mat_a = mat_a.AddVecVer(vec);
+  mat_a = mat_a.SubVecVer(vec);
+  mat_a = mat_a.MulVecHor(vec);
+  mat_a = mat_a.DivVecHor(vec);
 
   EXPECT_EQ(mat_a.Sum(), 9);
 }
